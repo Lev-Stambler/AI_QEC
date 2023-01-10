@@ -1,7 +1,7 @@
 import torch
 from bposd import bposd_decoder
 import numpy as np
-from .. import utils
+from ..utils import utils
 
 
 def gen_random_ldpc(n, k, deg_row):
