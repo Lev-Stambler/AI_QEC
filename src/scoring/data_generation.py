@@ -19,7 +19,7 @@ def gen_random_ldpc(n, k, deg_row):
 
 
 def sample_noisy_codespace(n, p_failures):
-    pass
+    return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
 
 # TODO: can we parallelize this dramatically? I think yes
@@ -31,7 +31,6 @@ def run_decoder(pc_mat_systematic, n_runs, p_fails):
     n_succ = 0
     for i in range(n_runs):
         noise = sample_noisy_codespace(n, rho)
-        print(pc_mat_systematic.shape, noise.shape)
         synd = (pc_mat_systematic @ noise) % 2
         if sum(synd) == 0:
             n_succ += 1
