@@ -22,7 +22,7 @@ class CPCEdge:
     def __init__(self, v1: CPCVertex, v2: CPCVertex, opposing_pauli=True, virtual_edge=False) -> None:
         self.v1 = v1
         self.v2 = v2
-        if opposing_pauli and virtual_edge:
+        if not opposing_pauli and virtual_edge:
             raise "Cannot have a virtual edge and opposing Pauli"
         if (v1.check_qubit and v2.data_qubit and virtual_edge) or (v1.data_qubit and v2.check_qubit and virtual_edge):
             raise "Cannot have a virtual edge between check and data qubit"
@@ -49,7 +49,7 @@ class CPCCode:
             self.vertex_edge_adj[edge.v1.id].append(edge)
 
             if edge.v2 not in self.vertex_edge_adj:
-                self.vertex_edge_adj[edge.v2.id] = {}
+                self.vertex_edge_adj[edge.v2.id] = []
             self.vertex_edge_adj[edge.v2.id].append(
                 edge)  # TODO: do we want this here?
 
