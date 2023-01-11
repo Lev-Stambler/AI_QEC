@@ -1,7 +1,9 @@
+from typing import Callable
 import torch
+import numpy.typing as npt
 from bposd import bposd_decoder
 import numpy as np
-from ..utils import utils
+import utils
 
 
 def gen_random_ldpc(n, k, deg_row):
@@ -29,6 +31,7 @@ def run_decoder(pc_mat_systematic, n_runs, p_fails):
     n_succ = 0
     for i in range(n_runs):
         noise = sample_noisy_codespace(n, rho)
+        print(pc_mat_systematic.shape, noise.shape)
         synd = (pc_mat_systematic @ noise) % 2
         if sum(synd) == 0:
             n_succ += 1
@@ -42,10 +45,11 @@ def run_decoder(pc_mat_systematic, n_runs, p_fails):
 class ScoringInitDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
 
-    def __init__(self, error_prob_sample: function, random_code_sample: function, dataset_size, item_sample_size=10_000):
+    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, item_sample_size=10_000):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
         self.dataset_size = dataset_size
+        self.item_sample_size = item_sample_size
         super(ScoringInitDataset, self).__init__()
 
     def __getitem__(self, index):
@@ -61,16 +65,3 @@ class ScoringInitDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return self.dataset_size
-
-if __name__ == "__main__":
-    n = 40
-    k = 10
-    deg_row = 5
-    p_error = 0.05
-    def ldpc_sample():
-        return gen_random_ldpc(n, k, deg_row)
-    def error_sample():
-       return (np.random.rand(n) <= p_error).astype(np.uint16)
-    d = ScoringInitDataset(error_sample, ldpc_sample, 1_000)
-    for i in range(10):
-        print(f"Sample {i + 1}: {d.__getitem__(i)}")
