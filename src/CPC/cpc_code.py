@@ -36,9 +36,7 @@ class CPCEdge:
 
 
 class CPCCode:
-    def __init__(self, n_bits, n_checks, edges: list[CPCEdge]) -> None:
-        self.n_bits = n_bits
-        self.n_checks = n_checks
+    def __init__(self,edges: list[CPCEdge]) -> None:
         self.edges = edges
 
         self.vertex_edge_adj = {}
