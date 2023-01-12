@@ -11,15 +11,15 @@ def random_cpc(n_bits: int, n_checks: int, deg_vc_opp: int, deg_vc_same: int, de
         # TODO: this may be quite inefficient
         check_idx = np.random.permutation(n_checks)[:deg_vc_opp]
         for c in check_idx:
-            edges.append(CPCEdge(bit_vert, check_vertices[c], opposing_pauli=True))
+            edges.append(CPCEdge(bit_vert, check_vertices[c], bit_check=True))
 
         check_idx = np.random.permutation(n_checks)[:deg_vc_same]
         for c in check_idx:
-            edges.append(CPCEdge(bit_vert, check_vertices[c], opposing_pauli=False))
+            edges.append(CPCEdge(bit_vert, check_vertices[c], bit_check=False))
     for check_vert in check_vertices:
         check_idx = np.random.permutation(n_checks)[:deg_cc]
         for c in check_idx:
             edges.append(CPCEdge(check_vert, check_vertices[c]))
 
-    return CPCCode(edges)
+    return CPCCode(n_bits, n_checks, edges)
         

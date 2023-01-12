@@ -41,7 +41,7 @@ def run_decoder(pc_mat_systematic, n_runs, p_fails):
 
     return n_succ
 
-class ScoringInitDataset(torch.utils.data.Dataset):
+class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
 
     def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, item_sample_size=10_000):
@@ -49,15 +49,15 @@ class ScoringInitDataset(torch.utils.data.Dataset):
         self.random_code = random_code_sample
         self.dataset_size = dataset_size
         self.item_sample_size = item_sample_size
-        super(ScoringInitDataset, self).__init__()
+        super(ScoringDataset, self).__init__()
 
     def __getitem__(self, index):
         H, _ = self.random_code()
         e = self.error_prob()
         error_rate = self.calculate_error_rate(H, e)
-        sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
+        # sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
 
-        return sample
+        return (H, e, error_rate)
     
     def calculate_error_rate(self, code, error_prob):
         return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size

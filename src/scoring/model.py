@@ -104,9 +104,9 @@ class PositionwiseFeedForward(nn.Module):
 ############################################################
 
 
-class ECC_Transformer(nn.Module):
+class ScoringTransformer(nn.Module):
     def __init__(self, n, k, h, d_model, N_dec, pc_adj_size, dropout=0):
-        super(ECC_Transformer, self).__init__()
+        super(ScoringTransformer, self).__init__()
         ####
         c = copy.deepcopy
         attn = MultiHeadedAttention(h, d_model)
@@ -143,8 +143,6 @@ class ECC_Transformer(nn.Module):
         emb = self.decoder(emb)
         return self.out_fc(self.oned_final_embed(emb).squeeze(-1))
 
-    def loss(self, z_pred, z2, y):
-        loss = F.binary_cross_entropy_with_logits(
-            z_pred, utils.sign_to_bin(torch.sign(z2)))
-        x_pred = utils.sign_to_bin(torch.sign(-z_pred * torch.sign(y)))
-        return loss, x_pred
+    def loss(self, error_rate_pred, real_error_rate):
+        loss = F.binary_cross_entropy(error_rate_pred, real_error_rate)
+        return loss
