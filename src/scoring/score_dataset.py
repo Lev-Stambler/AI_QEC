@@ -52,15 +52,16 @@ class ScoringDataset(torch.utils.data.Dataset):
         super(ScoringDataset, self).__init__()
 
     def __getitem__(self, index):
-        H, _ = self.random_code()
+        H = self.random_code()
         e = self.error_prob()
         error_rate = self.calculate_error_rate(H, e)
         # sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
 
-        return (H, e, error_rate)
+        return (H.astype(np.int16), e.astype(np.double), error_rate)
     
     def calculate_error_rate(self, code, error_prob):
         return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
 
     def __len__(self):
         return self.dataset_size
+np.max

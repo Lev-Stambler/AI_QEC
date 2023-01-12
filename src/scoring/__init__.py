@@ -1,5 +1,5 @@
 # TODO: better export
-import initial_code_sampling 
-import score_model
-import score_dataset
-import score_training
+import scoring.initial_code_sampling 
+import scoring.score_model
+import scoring.score_dataset
+import scoring.score_training

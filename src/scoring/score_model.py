@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import math
 import copy
 import logging
-from .. import utils
+import utils
 
 
 def clones(module, N):
@@ -28,9 +28,9 @@ class Encoder(nn.Module):
         if N > 1:
             self.norm2 = LayerNorm(layer.size)
 
-    def forward(self, x, mask):
+    def forward(self, x):
         for idx, layer in enumerate(self.layers, start=1):
-            x = layer(x, mask)
+            x = layer(x)
             if idx == len(self.layers)//2 and len(self.layers) > 1:
                 x = self.norm2(x)
         return self.norm(x)
@@ -136,9 +136,9 @@ class ScoringTransformer(nn.Module):
     # Only allow 1 batch size for now b/c I am feeling lazy rn
     def forward(self, p_check_mat, error_probabilities):
         # Modified
-        emb = torch.cat([p_check_mat.flatten(), error_probabilities], -1).unsqueeze(-1)
+        print("AAA", p_check_mat.flatten(start_dim=-2).shape, error_probabilities.shape)
+        emb = torch.cat([p_check_mat.flatten(start_dim=-2), error_probabilities], -1).unsqueeze(-1)
         emb = self.src_embed.unsqueeze(0) * emb
-
         emb = self.decoder(emb)
         return self.out_fc(self.oned_final_embed(emb).squeeze(-1))
 
