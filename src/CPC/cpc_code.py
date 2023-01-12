@@ -10,7 +10,7 @@ class CPCVertex:
         self.data_qubit = data_qubit
         self.check_qubit = check_qubit
         self.id = id
-    
+
     def __eq__(self, o: object) -> bool:
         return self.data_qubit == o.data_qubit and self.check_qubit == o.check_qubit and self.id == o.id
 
@@ -45,13 +45,13 @@ class CPCEdge:
             return o.virtual_edge and self.v1 == o.v1 and self.v2 == o.v2 and self.opposing_pauli == o.opposing_pauli
         else:
             return self.opposing_pauli == o.opposing_pauli and ((self.v1 == o.v1 and self.v2 == o.v2) or (self.v1 == o.v2 and self.v2 == o.v1))
-        
+
     def __ne__(self, __o) -> bool:
         return not self.__eq__(__o)
 
 
 class CPCCode:
-    def __init__(self,edges: list[CPCEdge]) -> None:
+    def __init__(self, edges: list[CPCEdge], auto_simplify=True) -> None:
         self.edges = edges
 
         self.vertex_edge_adj = {}
@@ -73,13 +73,15 @@ class CPCCode:
 
         self.vertices = vertices.values()
 
-        self.simplify()
+        if auto_simplify:
+            self.simplify()
 
     def simplify(self):
         """
         Simply according to virtual edge rules
         """
         all_simplified = False
+        n_simp = 0
         while not all_simplified:
             all_simplified = True
             for vert in self.vertices:
@@ -87,6 +89,8 @@ class CPCCode:
                 if simped:
                     # Start the while loop again
                     all_simplified = False
+                    print("SIMPED", n_simp, len(self.edges), len(self.vertices))
+                    n_simp += 1
                     break
 
     def get_classical_codes(self) -> list[npt.NDArray]:
@@ -99,7 +103,8 @@ class CPCCode:
     def remove_edge(self, edge):
         # TODO: this whole class can be wayyyy more efficient w/ maps instead of lists
         self.vertex_edge_adj[edge.v1.id].remove(edge)
-        self.vertex_edge_adj[edge.v2.id].remove(edge)
+        if edge.v2.id != edge.v1.id:
+            self.vertex_edge_adj[edge.v2.id].remove(edge)
         self.edges.remove(edge)
 
     def add_edge(self, edge):
@@ -120,6 +125,7 @@ class CPCCode:
         I.e. the vertex in question is the one on the left side
         """
         if vertex.data_qubit:
+            # Rule 1
             for i in range(len(self.vertex_edge_adj[vertex.id])):
                 for j in range(0, i):
                     e1: CPCEdge = self.vertex_edge_adj[vertex.id][i]

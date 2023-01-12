@@ -3,7 +3,6 @@ import unittest
 
 
 class TestCPCSimplifications(unittest.TestCase):
-
     def test_rule_1(self):
         data_vert = CPCVertex(0, data_qubit=True)
         check_1 = CPCVertex(1, check_qubit=True)
@@ -20,7 +19,7 @@ class TestCPCSimplifications(unittest.TestCase):
             CPCEdge(check_1, check_2, virtual_edge=True),
         ], c.edges)
 
-    def test_rule_1_mirrored(self):
+		# Mirrored now
         data_vert = CPCVertex(0, data_qubit=True)
         check_1 = CPCVertex(1, check_qubit=True)
         check_2 = CPCVertex(2, check_qubit=True)
