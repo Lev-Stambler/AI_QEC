@@ -105,17 +105,17 @@ class PositionwiseFeedForward(nn.Module):
 
 
 class ScoringTransformer(nn.Module):
-    def __init__(self, n, k, h, d_model, N_dec, pc_adj_size, dropout=0):
+    def __init__(self, n, k, h, d_model, N_dec, dropout=0):
         super(ScoringTransformer, self).__init__()
         ####
         c = copy.deepcopy
         attn = MultiHeadedAttention(h, d_model)
         ff = PositionwiseFeedForward(d_model, d_model*4, dropout)
 
-		# The first `pc_adj_size` inputs represent the parity check
-        # adjacency matrix. The following `n` inputs represent varying error probabilities
+        self.pc_size = n * (n - k)
+
         self.src_embed = torch.nn.Parameter(torch.empty(
-            (pc_adj_size + n, d_model)))
+            (self.pc_size + n, d_model)))
 
         self.decoder = Encoder(EncoderLayer(
             d_model, c(attn), c(ff), dropout), N_dec)
@@ -123,11 +123,10 @@ class ScoringTransformer(nn.Module):
             *[nn.Linear(d_model, 1)])
 
 		# Output a floating point score, i.e. the guessed FER
-        self.out_fc = nn.Linear(n + (n - k) + pc_adj_size, 1)
+        self.out_fc = nn.Linear(self.pc_size, 1)
 
         self.n = n
         self.k = k
-        self.pc_adj_size = pc_adj_size
         # TODO: renable mask
         ###
         for p in self.parameters():

@@ -1,5 +1,5 @@
 import numpy as np
-from scoring.data_generation import ScoringInitDataset, gen_random_ldpc
+from scoring.score_dataset import ScoringInitDataset, gen_random_ldpc
 
 
 n = 40

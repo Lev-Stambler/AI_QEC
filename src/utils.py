@@ -1,4 +1,5 @@
 import numpy as np
+from global_params import params
 import torch
 
 
@@ -100,3 +101,7 @@ def HtoG(H):
     Ik = np.eye(k)
     G = np.concatenate((P, Ik), axis=0)
     return G
+
+def sample_iid_error(n):
+    p = params['constant_error_rate']
+    return np.ones((n)) * p
