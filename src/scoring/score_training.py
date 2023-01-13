@@ -23,18 +23,18 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
     for batch_idx, (H, error_distr, error_rate) in enumerate(
             train_loader):
         error_rate_pred = model(H.to(device), error_distr.to(device))
-        loss = model.loss(error_rate_pred, error_rate.to(device))
+        loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device))
         model.zero_grad()
         loss.backward()
         optimizer.step()
         ###
 
-        cum_loss += loss.item() * loss.shape[0]
+        cum_loss += loss.item() * H.shape[0]
 
-        cum_samples += loss.shape[0]
+        cum_samples += H.shape[0]
         if (batch_idx+1) % 500 == 0 or batch_idx == len(train_loader) - 1:
             logging.info(
-                f'Training epoch {epoch}, Batch {batch_idx + 1}/{len(train_loader)}: LR={LR:.2e}, Loss={cum_loss / cum_samples:.2e} BER={cum_ber / cum_samples:.2e} FER={cum_fer / cum_samples:.2e}')
+                f'Training epoch {epoch}, Batch {batch_idx + 1}/{len(train_loader)}: LR={LR:.2e}, Loss={cum_loss / cum_samples:.2e}')
     logging.info(f'Epoch {epoch} Train Time {time.time() - t}s\n')
     return cum_loss / cum_samples
 

@@ -122,8 +122,8 @@ class ScoringTransformer(nn.Module):
         self.oned_final_embed = torch.nn.Sequential(
             *[nn.Linear(d_model, 1)])
 
-		# Output a floating point score, i.e. the guessed FER
-        self.out_fc = nn.Linear(self.pc_size, 1)
+        self.out_fc = nn.Linear(self.pc_size + n, 1)
+        self.out_activation = nn.Sigmoid()
 
         self.n = n
         self.k = k
@@ -136,12 +136,12 @@ class ScoringTransformer(nn.Module):
     # Only allow 1 batch size for now b/c I am feeling lazy rn
     def forward(self, p_check_mat, error_probabilities):
         # Modified
-        print("AAA", p_check_mat.flatten(start_dim=-2).shape, error_probabilities.shape)
         emb = torch.cat([p_check_mat.flatten(start_dim=-2), error_probabilities], -1).unsqueeze(-1)
         emb = self.src_embed.unsqueeze(0) * emb
         emb = self.decoder(emb)
-        return self.out_fc(self.oned_final_embed(emb).squeeze(-1))
+        return self.out_activation(self.out_fc(self.oned_final_embed(emb).swapaxes(-1, -2)).squeeze(-1))
 
     def loss(self, error_rate_pred, real_error_rate):
-        loss = F.binary_cross_entropy(error_rate_pred, real_error_rate)
+        print(error_rate_pred, real_error_rate)
+        loss = F.mse_loss(error_rate_pred, real_error_rate)
         return loss

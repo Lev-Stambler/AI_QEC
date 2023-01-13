@@ -8,11 +8,11 @@ from global_params import params
 
 
 def initialize(device):
-    gc = lambda: scoring.initial_code_sampling.generate_code(params)
+    def gc(): return scoring.initial_code_sampling.generate_code(params)
     sample_code = gc()
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
-    ge = lambda: utils.sample_iid_error(n)
+    def ge(): return utils.sample_iid_error(n)
     N_dec = 3  # CHanged from 6
     h = 4  # changed from 8...
     d_model = 40  # default is 32 but we are adding parity check info...
@@ -22,6 +22,11 @@ def initialize(device):
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
-if __name__ == '__main__':
+def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.set_default_dtype(
+        torch.float32 if torch.cuda.is_available() else torch.double)
     model = initialize(device)
+
+if __name__ == '__main__':
+    main()
