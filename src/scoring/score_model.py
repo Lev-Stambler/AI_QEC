@@ -142,6 +142,6 @@ class ScoringTransformer(nn.Module):
         return self.out_activation(self.out_fc(self.oned_final_embed(emb).swapaxes(-1, -2)).squeeze(-1))
 
     def loss(self, error_rate_pred, real_error_rate):
-        print(error_rate_pred, real_error_rate)
         loss = F.mse_loss(error_rate_pred, real_error_rate)
+        # print(f"Error rate predicted {error_rate_pred}, real error rate {real_error_rate}, loss {loss}")
         return loss

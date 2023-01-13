@@ -16,7 +16,7 @@ import scoring.score_model as scoring_model
 # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
-def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR):
+def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None):
     model.train()
     cum_loss = cum_samples = 0
     t = time.time()
@@ -24,6 +24,9 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             train_loader):
         error_rate_pred = model(H.to(device), error_distr.to(device))
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device))
+        if plot_loss is not None:
+            plot_loss.update({'Train Delta Err': math.abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item()})
+            plot_loss.send()  # draw, update logs, etc
         model.zero_grad()
         loss.backward()
         optimizer.step()
@@ -55,7 +58,7 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
 
                 test_loss += loss.item() * loss
 
-                cum_count += loss.shape[0]
+                cum_count += H.shape[0]
                 # cum count before 1e5
                 if cum_count >= 1e4:
                     break
@@ -75,7 +78,7 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
 ##################################################################
 
 
-def main_training_loop(model, error_prob_sample, random_code_sample, save_path,):
+def main_training_loop(model, error_prob_sample, random_code_sample, save_path, plot_loss=None):
     """
     Train the scoring model.
     Here we assume that the random_code_sample function always returns the same parity check
@@ -112,7 +115,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path,)
     last_save_epoch = -1
     for epoch in range(1, epochs + 1):
         loss = train(model, device, train_dataloader, optimizer,
-                     epoch, LR=scheduler.get_last_lr()[0])
+                     epoch, LR=scheduler.get_last_lr()[0], plot_loss=plot_loss)
         scheduler.step()
         if loss < best_loss and epoch - last_save_epoch > 15:
             best_loss = loss
