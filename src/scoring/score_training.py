@@ -25,7 +25,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
         error_rate_pred = model(H.to(device), error_distr.to(device))
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device))
         if plot_loss is not None:
-            plot_loss.update({'Train Delta Err': math.abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item()})
+            plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item()})
             plot_loss.send()  # draw, update logs, etc
         model.zero_grad()
         loss.backward()
