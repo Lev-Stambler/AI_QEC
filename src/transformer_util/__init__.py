@@ -26,7 +26,6 @@ class Encoder(nn.Module):
                 x = self.norm2(x)
         return self.norm(x)
 
-
 class SublayerConnection(nn.Module):
     def __init__(self, size, dropout):
         super(SublayerConnection, self).__init__()

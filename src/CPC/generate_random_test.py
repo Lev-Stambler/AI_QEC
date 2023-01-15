@@ -9,7 +9,7 @@ def sample_noisy_codespace(n, p_failures):
 
 class TestCPCSimplifications(unittest.TestCase):
     def test_generate_random(self):
-        code = generate_random.random_cpc(60, 30, 4, 4, 2)
+        code, _ = generate_random.random_cpc(60, 30, 4, 4, 2)
         classical_code = code.get_classical_code()
         print(classical_code)
         # print("CLASSICAL CODE", classical_code, classical_code.sum(axis=-1))

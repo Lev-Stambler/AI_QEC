@@ -17,38 +17,44 @@ from transformer_util import Encoder, EncoderLayer, MultiHeadedAttention, Positi
 
 
 class ScoringTransformer(nn.Module):
-    def __init__(self, n, k, h, d_model, N_dec, dropout=0):
+    def __init__(self, n_bits, n_checks, h, d_model, N_dec, dropout=0):
         super(ScoringTransformer, self).__init__()
         ####
         c = copy.deepcopy
         attn = MultiHeadedAttention(h, d_model)
         ff = PositionwiseFeedForward(d_model, d_model*4, dropout)
 
-        self.pc_size = n * (n - k)
+        n = (n_bits + n_checks) * 2
+        k = n - n_checks
+        self.n_checks = n_checks
 
+        self.bit_adj_size = self.phase_adj_size = n_bits * n_checks
+
+        self.check_check_adj = n_checks * n_checks
+
+        inp_transformer_size = n * (n - k) + n
         self.src_embed = torch.nn.Parameter(torch.empty(
-            (self.pc_size + n, d_model)))
+            (inp_transformer_size, d_model)))
 
         self.decoder = Encoder(EncoderLayer(
             d_model, c(attn), c(ff), dropout), N_dec)
         self.oned_final_embed = torch.nn.Sequential(
             *[nn.Linear(d_model, 1)])
 
-        self.out_fc = nn.Linear(self.pc_size + n, 1)
+        self.out_fc = nn.Linear(inp_transformer_size, 1)
         self.out_activation = nn.Sigmoid()
 
-        self.n = n
-        self.k = k
-        # TODO: renable mask
-        ###
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
     # Only allow 1 batch size for now b/c I am feeling lazy rn
-    def forward(self, p_check_mat, error_probabilities):
+    def forward(self, bit_adj, phase_adj, check_adj, error_probabilities):
+        # TODO: refactor!!! (Maybe we can remove CPC class for now...)
+        print(phase_adj.shape, bit_adj.shape, check_adj.shape)
+        pc = torch.concatenate([phase_adj.transpose(-2, -1), ((bit_adj.transpose(-2, -1) @ phase_adj) % 2) ^ check_adj, bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1)], axis=-1)
         # Modified
-        emb = torch.cat([p_check_mat.flatten(start_dim=-2), error_probabilities], -1).unsqueeze(-1)
+        emb = torch.cat([pc.flatten(start_dim=1), error_probabilities], -1).unsqueeze(-1)
         emb = self.src_embed.unsqueeze(0) * emb
         emb = self.decoder(emb)
         return self.out_activation(self.out_fc(self.oned_final_embed(emb).swapaxes(-1, -2)).squeeze(-1))

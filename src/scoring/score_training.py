@@ -19,33 +19,35 @@ def calc_std_dev(items: list):
     avg = sum(items) / len(items)
     return math.sqrt(sum([(avg - i) ** 2 for i in items]) / (len(items) - 1))
 
-def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, std_dev_period=10):
+def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, plotting_period=10):
     model.train()
     cum_loss = cum_samples = 0
     t = time.time()
     train_std_dev = 0
     past_preds = []
-    for batch_idx, (H, error_distr, error_rate) in enumerate(
+    for batch_idx, (bit_adj, phase_adj, check_adj, error_distr, error_rate) in enumerate(
             train_loader):
-        if cum_samples % std_dev_period == 0:
+        if cum_samples % plotting_period == 0:
             if cum_samples != 0:
                 train_std_dev = calc_std_dev(past_preds)
             past_preds = []
-        error_rate_pred = model(H.to(device), error_distr.to(device))
+
+        error_rate_pred = model(bit_adj.to(device), phase_adj.to(device), check_adj.to(device), error_distr.to(device))
         past_preds.append(error_rate_pred.mean().item())
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device))
         if plot_loss is not None:
             plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item(),
             'Train std dev': train_std_dev})
             plot_loss.send()  # draw, update logs, etc
+
         model.zero_grad()
         loss.backward()
         optimizer.step()
         ###
 
-        cum_loss += loss.item() * H.shape[0]
+        cum_loss += loss.item() * bit_adj.shape[0]
 
-        cum_samples += H.shape[0]
+        cum_samples += bit_adj.shape[0]
         if (batch_idx+1) % 500 == 0 or batch_idx == len(train_loader) - 1:
             logging.info(
                 f'Training epoch {epoch}, Batch {batch_idx + 1}/{len(train_loader)}: LR={LR:.2e}, Loss={cum_loss / cum_samples:.2e}')
@@ -63,13 +65,13 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
         for ii, test_loader in enumerate(test_loader_list):
             test_loss = cum_count = 0.
             while True:
-                (H, error_dist, error_rate) = next(iter(test_loader))
-                error_rate_pred = model(H.to(device), error_dist.to(device))
+                (bit_adj, phase_adj, check_adj, error_dist, error_rate) = next(iter(test_loader))
+                error_rate_pred = model(bit_adj.to(device), phase_adj.to(device), check_adj.to(device), error_dist.to(device))
                 loss = model.loss(error_rate_pred, error_rate)
 
                 test_loss += loss.item() * loss
 
-                cum_count += H.shape[0]
+                cum_count += bit_adj.shape[0]
                 # cum count before 1e5
                 if cum_count >= 1e4:
                     break
@@ -107,7 +109,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
     # We want a train size of about 400 * batch_size
-    train_size = batch_size * 400
+    train_size = batch_size * 1_000
     logging.info(model)
     logging.info(
         f'# of Parameters: {np.sum([np.prod(p.shape) for p in model.parameters()])}')

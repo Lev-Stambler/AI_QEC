@@ -9,7 +9,8 @@ from global_params import params
 
 def initialize(device, plot_loss=None):
     def gc(): return scoring.initial_code_sampling.generate_code(params)
-    sample_code = gc()
+    _sample_code, _, _, _ = gc()
+    sample_code = _sample_code.get_classical_code()
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
     def ge(): return utils.sample_iid_error(n)
@@ -17,7 +18,7 @@ def initialize(device, plot_loss=None):
     h = 4  # changed from 8...
     d_model = 40  # default is 32 but we are adding parity check info...
     model = score_model.ScoringTransformer(
-        n, k, h, d_model, N_dec, dropout=0).to(device)
+        params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, dropout=0).to(device)
     scoring.score_training.main_training_loop(model, ge, gc, 'best_model', plot_loss)
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
@@ -27,6 +28,7 @@ def main(plot_loss=None):
     torch.set_default_dtype(
         torch.float32 if torch.cuda.is_available() else torch.double)
     model = initialize(device, plot_loss)
+    return model
 
 if __name__ == '__main__':
     main()
