@@ -15,17 +15,28 @@ import scoring.score_model as scoring_model
 # logging.basicConfig(filename='example.log', filemode='w', level=logging.DEBUG)
 # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
+def calc_std_dev(items: list):
+    avg = sum(items) / len(items)
+    return math.sqrt(sum([(avg - i) ** 2 for i in items]) / (len(items) - 1))
 
-def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None):
+def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, std_dev_period=10):
     model.train()
     cum_loss = cum_samples = 0
     t = time.time()
+    train_std_dev = 0
+    past_preds = []
     for batch_idx, (H, error_distr, error_rate) in enumerate(
             train_loader):
+        if cum_samples % std_dev_period == 0:
+            if cum_samples != 0:
+                train_std_dev = calc_std_dev(past_preds)
+            past_preds = []
         error_rate_pred = model(H.to(device), error_distr.to(device))
+        past_preds.append(error_rate_pred.mean().item())
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device))
         if plot_loss is not None:
-            plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item()})
+            plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item(),
+            'Train std dev': train_std_dev})
             plot_loss.send()  # draw, update logs, etc
         model.zero_grad()
         loss.backward()
