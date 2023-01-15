@@ -100,7 +100,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #################################
     lr = 1e-4
-    epochs = 1000
+    epochs = 3#1000
     batch_size = 1
     # Use a new random code after 32 runs, we do not want this to be too high as we are
     # trying to learn a **general** decoder
@@ -109,7 +109,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
     # We want a train size of about 400 * batch_size
-    train_size = batch_size * 1_000
+    train_size = batch_size * 400
     logging.info(model)
     logging.info(
         f'# of Parameters: {np.sum([np.prod(p.shape) for p in model.parameters()])}')
