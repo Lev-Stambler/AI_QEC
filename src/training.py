@@ -10,8 +10,7 @@ from global_params import params
 
 def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
     def gc(): return scoring.initial_code_sampling.generate_code(params)
-    _sample_code, _, _, _ = gc()
-    sample_code = _sample_code.get_classical_code()
+    sample_code, _, _, _ = gc()
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
     def ge(): return utils.sample_iid_error(n)
