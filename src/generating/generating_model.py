@@ -9,7 +9,7 @@ from CPC.generate_random import random_cpc
 
 
 class GeneratingModel():
-    def __init__(self, n_bits, n_checks, deg_phase, deg_bits, deg_cc) -> None:
+    def __init__(self, n_bits, n_checks, deg_bits, deg_phase, deg_cc) -> None:
         self.n_bits = n_bits
         self.n_checks = n_checks
         self.deg_phase = deg_phase

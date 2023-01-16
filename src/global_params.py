@@ -1,5 +1,3 @@
-import numpy as np
-
 params = {
 	'n_data_qubits': 30,
 	'n_check_qubits': 10,

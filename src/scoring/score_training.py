@@ -72,7 +72,7 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
                  error_rate) = next(iter(test_loader))
                 error_rate_pred = model(bit_adj.to(device), phase_adj.to(
                     device), check_adj.to(device), error_dist.to(device))
-                loss = model.loss(error_rate_pred, error_rate)
+                loss = model.loss(error_rate_pred, error_rate.to(device).type(utils.get_numb_type()))
 
                 test_loss += loss.item() * loss
 
