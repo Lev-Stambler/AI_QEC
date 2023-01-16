@@ -6,5 +6,6 @@ params = {
 	'deg_check_to_check': 2,
 	# TODO: delete the below
 	'constant_error_rate': 0.1,
-	'scoring_model_save_path': 'best_scoring_model'
+	'scoring_model_save_path': 'best_scoring_model',
+	'n_genetic_epochs': 3,
 }

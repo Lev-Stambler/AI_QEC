@@ -15,8 +15,15 @@ class GeneratingModel():
         self.deg_phase = deg_phase
         self.deg_bits = deg_bits
         self.deg_cc = deg_cc
-
-    def generate_origin_sample(self, scoring_model, physical_error_rates, num_steps=10):
+    
+    def generate_sample(self, scoring_model, physical_error_rates, num_steps=10, starting_code=None):
+        bit_adj = phase_adj = check_adj = None
+        if starting_code == None:
+            _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks, self.deg_phase, self.deg_bits, self.deg_cc)
+        else:
+            bit_adj = starting_code[0]
+            phase_adj = starting_code[1]
+            check_adj = starting_code[2]
         scoring_model.requires_grad_(False)
         # Optimization originally from https://stackoverflow.com/questions/67328098/how-to-find-input-that-maximizes-output-of-a-neural-network-using-pytorch
         mse = torch.nn.MSELoss()
@@ -43,5 +50,9 @@ class GeneratingModel():
         return hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
 
     def mutate_origin_sample(self):
+        """
+        TODO: consider this method... like we can do random "mutations" to the output
+        TODO: code. For now, lets skip this and keep it simple...
+        """
         pass
 

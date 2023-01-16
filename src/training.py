@@ -25,6 +25,18 @@ def initialize_scoring_model(device, plot_loss=None):
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
+def train_score_model_with_generator(scoring_model: score_model.ScoringTransformer,
+        generating_model: gen_model.GeneratingModel, plot_loss=None):
+    def ge(): return utils.sample_iid_error(n)
+    err = ge()
+    def gc(): return generating_model.generate_sample(scoring_model, err)
+    _sample_code, _, _, _ = gc()
+    sample_code = _sample_code.get_classical_code()
+    n = sample_code.shape[-1]
+
+    scoring.score_training.main_training_loop(
+        scoring_model, ge, gc, params['scoring_model_save_path'], plot_loss)
+
 
 def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,9 +49,16 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
             params['scoring_model_save_path']))
     generating_model = None
     if not load_saved_generating_model:
-        gen_model.GeneratingModel(
+        generating_model = gen_model.GeneratingModel(
             params['n_data_qubits'], params['n_check_qubits'], params['deg_bits'], params['deg_phase'], params['deg_cc']
         )
+    else:
+        # TODO: load generating model??
+        pass
+    for genetic_epoch in range(params['n_genetic_epochs']):
+        print(f"Starting epoch #{genetic_epoch + 1}")
+        train_score_model_with_generator(scoring_model, generating_model, plot_loss)
+
     return scoring_model
 
 

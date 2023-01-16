@@ -4,6 +4,12 @@ from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 
 
 def random_cpc(n_bits: int, n_checks: int, deg_phase: int, deg_bit: int, deg_cc: int) -> CPCCode:
+    """
+    TODO: I think "relaxing" the degree requirement would make life **a lot**
+    TODO: easier when generalizing the search space. Maybe we have like a "range"
+    TODO: and uniformly sample from there. Selection for lower degree or not can be built into
+    TODO: the error simulator via Stim
+    """
     bit_vertices = [CPCVertex(i, data_qubit=True) for i in range(n_bits)]
     check_vertices = [CPCVertex(i + n_bits, check_qubit=True) for i in range(n_checks)]
     edges = []

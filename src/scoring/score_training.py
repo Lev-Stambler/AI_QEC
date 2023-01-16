@@ -37,7 +37,8 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
         error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(device).type(
             torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
         past_preds.append(error_rate_pred.mean().item())
-        loss = model.loss(error_rate_pred, error_rate.unsqueeze(0).to(device).type(utils.get_numb_type()))
+        loss = model.loss(error_rate_pred, error_rate.unsqueeze(
+            0).to(device).type(utils.get_numb_type()))
         if plot_loss is not None:
             plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item(),
                               'Train std dev': train_std_dev})
@@ -70,9 +71,10 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
             while True:
                 (bit_adj, phase_adj, check_adj, error_dist,
                  error_rate) = next(iter(test_loader))
-                error_rate_pred = model(bit_adj.to(device), phase_adj.to(
-                    device), check_adj.to(device), error_dist.to(device))
-                loss = model.loss(error_rate_pred, error_rate.to(device).type(utils.get_numb_type()))
+                error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(
+                    device).type(torch.float32), check_adj.to(device).type(torch.float32), error_dist.to(device).type(torch.float32))
+                loss = model.loss(error_rate_pred, error_rate.to(
+                    device).type(utils.get_numb_type()))
 
                 test_loss += loss.item() * loss
 
