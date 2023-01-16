@@ -39,7 +39,7 @@ class GeneratingModel():
         # Revert the model back
         scoring_model.requires_grad_(True)
         print("OPTIMIZED", bit_adj, phase_adj, check_adj)
-        hard_decision = lambda f_tensor: (f_tensor >= 0.5).type(torch.int16)
+        hard_decision = lambda f_tensor: (f_tensor >= 0.5).type(torch.int32)
         return hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
 
     def mutate_origin_sample(self):

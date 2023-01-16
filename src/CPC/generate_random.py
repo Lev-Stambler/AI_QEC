@@ -7,9 +7,9 @@ def random_cpc(n_bits: int, n_checks: int, deg_phase: int, deg_bit: int, deg_cc:
     bit_vertices = [CPCVertex(i, data_qubit=True) for i in range(n_bits)]
     check_vertices = [CPCVertex(i + n_bits, check_qubit=True) for i in range(n_checks)]
     edges = []
-    bit_adj = np.zeros((n_bits, n_checks), dtype=np.int16)
-    phase_adj = np.zeros((n_bits, n_checks), dtype=np.int16)
-    check_check_adj = np.zeros((n_checks, n_checks), dtype=np.int16)
+    bit_adj = np.zeros((n_bits, n_checks), dtype=np.int32)
+    phase_adj = np.zeros((n_bits, n_checks), dtype=np.int32)
+    check_check_adj = np.zeros((n_checks, n_checks), dtype=np.int32)
 
     for i, bit_vert in enumerate(bit_vertices):
         # TODO: this may be quite inefficient
