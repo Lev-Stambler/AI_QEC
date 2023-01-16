@@ -8,4 +8,6 @@ params = {
 	'constant_error_rate': 0.1,
 	'scoring_model_save_path': 'best_scoring_model',
 	'n_genetic_epochs': 3,
+	'n_score_testing_samples': 500,
+	'n_score_training_samples': 1_000,
 }

@@ -1,4 +1,5 @@
 import math
+from global_params import params
 from torch.utils.data import DataLoader
 from IPython.display import display, clear_output
 import numpy as np
@@ -61,27 +62,26 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
 
 ##################################################################
 
-def test(model: scoring_model.ScoringTransformer, device, test_loader_list):
+def test(model: scoring_model.ScoringTransformer, device, test_loader):
     model.eval()
     test_loss_list, cum_samples_all = [], []
     t = time.time()
+    # TODO: mov
     with torch.no_grad():
-        for ii, test_loader in enumerate(test_loader_list):
+        for batch_idx, (bit_adj, phase_adj, check_adj, error_distr, error_rate) in enumerate(
+                test_loader):
             test_loss = cum_count = 0.
-            while True:
-                (bit_adj, phase_adj, check_adj, error_dist,
-                 error_rate) = next(iter(test_loader))
-                error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(
-                    device).type(torch.float32), check_adj.to(device).type(torch.float32), error_dist.to(device).type(torch.float32))
-                loss = model.loss(error_rate_pred, error_rate.to(
-                    device).type(utils.get_numb_type()))
+            if cum_count % 100:
+                print(
+                    f"Doing sample {cum_count} out of {params['n_score_training_samples']}")
+            error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(
+                device).type(torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
+            loss = model.loss(error_rate_pred, error_rate.to(
+                device).type(utils.get_numb_type()))
 
-                test_loss += loss.item() * loss
+            test_loss += loss.item() * loss
 
-                cum_count += bit_adj.shape[0]
-                # cum count before 1e5
-                if cum_count >= 1e4:
-                    break
+            cum_count += bit_adj.shape[0]
             cum_samples_all.append(cum_count)
             test_loss_list.append(test_loss / cum_count)
         ###
@@ -115,20 +115,20 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
-    # We want a train size of about 400 * batch_size
-    train_size = batch_size * 400
+    train_size = params['n_score_training_samples']
     logging.info(model)
     logging.info(
         f'# of Parameters: {np.sum([np.prod(p.shape) for p in model.parameters()])}')
     #################################
     test_batch_size = 1
-    test_size = test_batch_size * 20
+    test_size = params['n_score_testing_samples']
 
     # TODO: scoring data loader...
     train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=train_size), batch_size=int(batch_size),
                                   shuffle=True, num_workers=workers)
-    test_dataloader_list = [DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
-                                       batch_size=int(test_batch_size), shuffle=False, num_workers=workers)]
+    test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
+                                 batch_size=int(test_batch_size), shuffle=False, num_workers=workers)
+
     #################################
     # TODO: increase the batch size so loss is a better metric for saving
     best_loss = float('inf')
@@ -145,7 +145,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
             print("Saving Model at Epoch", epoch)
         if epoch % 300 == 0 or epoch in [1, epochs]:
             test_loss_list = test(
-                model, device, test_dataloader_list)
+                model, device, test_dataloader)
             print("Losses for test of", test_loss_list)
         # clear_output(wait=True)
         print(f"Epoch {epoch} finished, loss: {loss}")
