@@ -45,15 +45,3 @@ class GeneratingModel():
     def mutate_origin_sample(self):
         pass
 
-
-f = torch.nn.Linear(10, 5)
-f.requires_grad_(False)
-x = torch.nn.Parameter(torch.rand(10), requires_grad=True)
-y = torch.ones(5)  # the desired network response
-
-num_steps = 5  # how many optim steps to take
-for _ in range(num_steps):
-    loss = mse(f(x), y)
-    loss.backward()
-    optim.step()
-    optim.zero_grad()
