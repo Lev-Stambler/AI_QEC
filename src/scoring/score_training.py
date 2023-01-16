@@ -98,7 +98,7 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader):
 ##################################################################
 
 
-def main_training_loop(model, error_prob_sample, random_code_sample, save_path, plot_loss=None, skip_testing=False):
+def main_training_loop(model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, skip_testing=False):
     """
     Train the scoring model.
     Here we assume that the random_code_sample function always returns the same parity check
@@ -115,7 +115,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
-    train_size = params['n_score_training_samples']
+    train_size = n_score_training_samples
     logging.info(model)
     logging.info(
         f'# of Parameters: {np.sum([np.prod(p.shape) for p in model.parameters()])}')

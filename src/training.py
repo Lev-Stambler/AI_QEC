@@ -20,7 +20,7 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device)
     scoring.score_training.main_training_loop(
-        model, ge, gc, params['scoring_model_save_path'], plot_loss, skip_testing=skip_testing)
+        model, ge, gc, params['scoring_model_save_path'], params['n_score_training_samples_initial'], plot_loss, skip_testing=skip_testing)
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
@@ -32,9 +32,9 @@ def train_score_model_with_generator(scoring_model: score_model.ScoringTransform
     def ge(): return utils.sample_iid_error(n)
     err = ge()
     def gc(): return generating_model.generate_sample(scoring_model, err)
-    
+
     scoring.score_training.main_training_loop(
-        scoring_model, ge, gc, params['scoring_model_save_path'], plot_loss, skip_testing=skip_testing)
+        scoring_model, ge, gc, params['scoring_model_save_path'], params['n_score_training_samples_genetic'],  plot_loss, skip_testing=skip_testing)
 
 
 def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False):
@@ -42,7 +42,8 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
     if not load_saved_scoring_model:
-        scoring_model = initialize_scoring_model(device, plot_loss, skip_testing=skip_testing)
+        scoring_model = initialize_scoring_model(
+            device, plot_loss, skip_testing=skip_testing)
     else:
         scoring_model = torch.load(os.path.join(
             params['scoring_model_save_path']))

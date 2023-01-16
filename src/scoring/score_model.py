@@ -65,5 +65,4 @@ class ScoringTransformer(nn.Module):
 
     def loss(self, error_rate_pred, real_error_rate):
         loss = F.mse_loss(error_rate_pred, real_error_rate)
-        # print(f"Error rate predicted {error_rate_pred}, real error rate {real_error_rate}, loss {loss}")
         return loss

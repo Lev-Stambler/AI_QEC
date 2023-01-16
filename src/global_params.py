@@ -9,6 +9,7 @@ params = {
 	'scoring_model_save_path': 'best_scoring_model',
 	'n_genetic_epochs': 3,
 	'n_score_testing_samples': 500,
-	'n_score_training_samples': 1_000,
+	'n_score_training_samples_initial': 2_000,
+	'n_score_training_samples_genetic': 500,
 	'n_score_epochs': 1,
 }
