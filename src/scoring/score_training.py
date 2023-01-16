@@ -139,7 +139,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
         # TODO: reenable
         if loss < best_loss:
             best_loss = loss
-            torch.save(model, os.path.join(save_path, 'best_model'))
+            torch.save(model, save_path)
             print("Saving Model at Epoch", epoch)
         if epoch % 300 == 0 or epoch in [1, epochs]:
             test_loss_list = test(
