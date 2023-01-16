@@ -57,7 +57,8 @@ class ScoringDataset(torch.utils.data.Dataset):
         error_rate = self.calculate_error_rate(cpc_code.get_classical_code(), e)
         # sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
 
-        return (bit_adj, phase_adj, check_adj, e.astype(np.double), error_rate)
+        e_type = np.float32 if torch.cuda.is_available() else np.double
+        return (bit_adj, phase_adj, check_adj, e.astype(e_type), error_rate)
     
     def calculate_error_rate(self, code, error_prob):
         return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
