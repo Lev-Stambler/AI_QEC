@@ -51,7 +51,7 @@ class ScoringTransformer(nn.Module):
     # Only allow 1 batch size for now b/c I am feeling lazy rn
     def forward(self, bit_adj, phase_adj, check_adj, error_probabilities):
         # TODO: refactor!!! (Maybe we can remove CPC class for now...)
-        pc = torch.concatenate([phase_adj.transpose(-2, -1), ((bit_adj.transpose(-2, -1) @ phase_adj) % 2) ^ check_adj, bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1)], axis=-1)
+        pc = torch.concat([phase_adj.transpose(-2, -1), ((bit_adj.transpose(-2, -1) @ phase_adj) % 2) ^ check_adj, bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1)], axis=-1)
         # Modified
         emb = torch.cat([pc.flatten(start_dim=1), error_probabilities], -1).unsqueeze(-1)
         emb = self.src_embed.unsqueeze(0) * emb
