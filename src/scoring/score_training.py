@@ -130,7 +130,6 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     #################################
     # TODO: increase the batch size so loss is a better metric for saving
     best_loss = float('inf')
-    last_save_epoch = -1
     for epoch in range(1, epochs + 1):
         loss = train(model, device, train_dataloader, optimizer,
                      epoch, LR=scheduler.get_last_lr()[0], plot_loss=plot_loss)
@@ -138,9 +137,8 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
         scheduler.step()
         print("Done stepping")
         # TODO: reenable
-        if loss < best_loss and epoch - last_save_epoch > 15:
+        if loss < best_loss:
             best_loss = loss
-            last_save_epoch = epoch
             torch.save(model, os.path.join(save_path, 'best_model'))
             print("Saving Model at Epoch", epoch)
         if epoch % 300 == 0 or epoch in [1, epochs]:
