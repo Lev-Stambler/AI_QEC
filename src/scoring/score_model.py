@@ -17,9 +17,10 @@ from transformer_util import Encoder, EncoderLayer, MultiHeadedAttention, Positi
 
 
 class ScoringTransformer(nn.Module):
-    def __init__(self, n_bits, n_checks, h, d_model, N_dec, dropout=0):
+    def __init__(self, n_bits, n_checks, h, d_model, N_dec, device, dropout=0):
         super(ScoringTransformer, self).__init__()
         ####
+        self.device = device
         c = copy.deepcopy
         attn = MultiHeadedAttention(h, d_model)
         ff = PositionwiseFeedForward(d_model, d_model*4, dropout)
@@ -51,9 +52,10 @@ class ScoringTransformer(nn.Module):
     # Only allow 1 batch size for now b/c I am feeling lazy rn
     def forward(self, bit_adj, phase_adj, check_adj, error_probabilities):
         # Addition of 0,1 bits mod 2 acts as an XOR
-        phase_check = (((bit_adj.transpose(-2, -1) @ phase_adj) % 2) + check_adj) % 2,
+        phase_check = (((bit_adj.transpose(-2, -1) @ phase_adj) %
+                       2) + check_adj) % 2
         pc = torch.concat([phase_adj.transpose(-2, -1), phase_check,
-                          bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1)], axis=-1)
+                          bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1).device(self.device)], axis=-1)
         # Modified
         emb = torch.cat(
             [pc.flatten(start_dim=1), error_probabilities], -1).unsqueeze(-1)

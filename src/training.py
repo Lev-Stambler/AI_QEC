@@ -18,7 +18,7 @@ def initialize(device, plot_loss=None):
     h = 4  # changed from 8...
     d_model = 40  # default is 32 but we are adding parity check info...
     model = score_model.ScoringTransformer(
-        params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, dropout=0).to(device)
+        params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device)
     scoring.score_training.main_training_loop(model, ge, gc, 'best_model', plot_loss)
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
