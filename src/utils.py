@@ -105,3 +105,6 @@ def HtoG(H):
 def sample_iid_error(n):
     p = params['constant_error_rate']
     return np.ones((n)) * p
+
+def get_numb_type():
+    return torch.float32 if torch.cuda.is_available() else torch.double

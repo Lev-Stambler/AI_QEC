@@ -25,8 +25,7 @@ def initialize(device, plot_loss=None, scoring_model_save_path='best_scoring_mod
 
 def main(plot_loss=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.set_default_dtype(
-        torch.float32 if torch.cuda.is_available() else torch.double)
+    torch.set_default_dtype(utils.get_numb_type())
     model = initialize(device, plot_loss)
     return model
 
