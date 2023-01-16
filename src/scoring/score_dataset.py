@@ -15,11 +15,11 @@ def gen_random_ldpc(n, k, deg_row):
     # TODO: above is wrong use first approach
     rand_ldpc_H = np.concatenate((iden_left, x), axis=1)
     G = utils.HtoG(rand_ldpc_H)
-    return rand_ldpc_H.astype(np.int32), G.astype(np.int32)
+    return rand_ldpc_H.astype(np.int16), G.astype(np.int16)
 
 
 def sample_noisy_codespace(n, p_failures):
-    return (np.random.rand(n) <= p_failures).astype(np.uint32)
+    return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
 
 # TODO: can we parallelize this dramatically? I think yes

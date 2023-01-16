@@ -106,9 +106,9 @@ class CPCCode:
         if with_virtual_edges:
             raise "No support for virtual edges yet"
 
-        mb = np.zeros((self.n_bits, self.n_checks), dtype=np.int32)
-        mp = np.zeros((self.n_bits, self.n_checks), dtype=np.int32)
-        mc = np.zeros((self.n_checks, self.n_checks), dtype=np.int32)
+        mb = np.zeros((self.n_bits, self.n_checks), dtype=np.int16)
+        mp = np.zeros((self.n_bits, self.n_checks), dtype=np.int16)
+        mc = np.zeros((self.n_checks, self.n_checks), dtype=np.int16)
 
         for edge in self.edges:
             if (edge.v1.data_qubit and edge.v2.check_qubit) or (edge.v2.data_qubit and edge.v1.check_qubit):

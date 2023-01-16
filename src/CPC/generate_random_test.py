@@ -5,7 +5,7 @@ from bposd import bposd_decoder
 
 
 def sample_noisy_codespace(n, p_failures):
-    return (np.random.rand(n) <= p_failures).astype(np.uint32)
+    return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
 class TestCPCSimplifications(unittest.TestCase):
     def test_generate_random(self):

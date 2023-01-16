@@ -138,11 +138,11 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
         scheduler.step()
         print("Done stepping")
         # TODO: reenable
-        # if loss < best_loss and epoch - last_save_epoch > 15:
-        #     best_loss = loss
-        #     last_save_epoch = epoch
-        #     torch.save(model, os.path.join(save_path, 'best_model'))
-        #     print("Saving Model at Epoch", epoch)
+        if loss < best_loss and epoch - last_save_epoch > 15:
+            best_loss = loss
+            last_save_epoch = epoch
+            torch.save(model, os.path.join(save_path, 'best_model'))
+            print("Saving Model at Epoch", epoch)
         if epoch % 300 == 0 or epoch in [1, epochs]:
             test_loss_list = test(
                 model, device, test_dataloader_list)
