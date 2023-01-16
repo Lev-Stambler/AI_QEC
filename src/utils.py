@@ -108,3 +108,11 @@ def sample_iid_error(n):
 
 def get_numb_type():
     return torch.float32 if torch.cuda.is_available() else torch.double
+
+def numpy_to_parameter(np_arr, device, unsqueeze=True):
+    if unsqueeze:
+        return torch.nn.parameter.Parameter(
+            torch.from_numpy(np_arr).to(device).type(get_numb_type()).unsqueeze(0))
+    else:
+        return torch.nn.parameter.Parameter(
+            torch.from_numpy(np_arr).to(device).type(get_numb_type()))

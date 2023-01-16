@@ -36,5 +36,5 @@ def random_cpc(n_bits: int, n_checks: int, deg_phase: int, deg_bit: int, deg_cc:
             check_check_adj[c1, c2] = 1
             check_check_adj[c2, c1] = 1
 
-    return CPCCode(n_bits, n_checks, edges), bit_adj, phase_adj, check_check_adj
+    return CPCCode(n_bits, n_checks, edges).get_classical_code(), bit_adj, phase_adj, check_check_adj
         

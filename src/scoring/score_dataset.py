@@ -52,9 +52,9 @@ class ScoringDataset(torch.utils.data.Dataset):
         super(ScoringDataset, self).__init__()
 
     def __getitem__(self, index):
-        cpc_code, bit_adj, phase_adj, check_adj = self.random_code()
+        cpc_code_pc, bit_adj, phase_adj, check_adj = self.random_code()
         e = self.error_prob()
-        error_rate = self.calculate_error_rate(cpc_code.get_classical_code(), e)
+        error_rate = self.calculate_error_rate(cpc_code_pc, e)
         # sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
 
         e_type = np.float32 if torch.cuda.is_available() else np.double

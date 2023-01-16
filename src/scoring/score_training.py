@@ -98,7 +98,7 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader):
 ##################################################################
 
 
-def main_training_loop(model, error_prob_sample, random_code_sample, save_path, plot_loss=None):
+def main_training_loop(model, error_prob_sample, random_code_sample, save_path, plot_loss=None, skip_testing=False):
     """
     Train the scoring model.
     Here we assume that the random_code_sample function always returns the same parity check
@@ -107,7 +107,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #################################
     lr = 1e-4
-    epochs = 2  # 1000
+    epochs = params['n_score_epochs']
     batch_size = 1
     # Use a new random code after 32 runs, we do not want this to be too high as we are
     # trying to learn a **general** decoder
@@ -143,7 +143,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
             best_loss = loss
             torch.save(model, save_path)
             print("Saving Model at Epoch", epoch)
-        if epoch % 300 == 0 or epoch in [1, epochs]:
+        if not skip_testing:
             test_loss_list = test(
                 model, device, test_dataloader)
             print("Losses for test of", test_loss_list)

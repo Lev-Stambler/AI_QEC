@@ -5,38 +5,48 @@
 # ...
 # Profit!
 import torch
+import utils
 from CPC.generate_random import random_cpc
+from CPC.cpc_code import get_classical_code_cpc
 
 
 class GeneratingModel():
-    def __init__(self, n_bits, n_checks, deg_bits, deg_phase, deg_cc) -> None:
+    def __init__(self, n_bits, n_checks, deg_phase, deg_bit, deg_cc, device) -> None:
         self.n_bits = n_bits
         self.n_checks = n_checks
         self.deg_phase = deg_phase
-        self.deg_bits = deg_bits
+        self.deg_bit = deg_bit
         self.deg_cc = deg_cc
+        self.device = device
     
     def generate_sample(self, scoring_model, physical_error_rates, num_steps=10, starting_code=None):
         bit_adj = phase_adj = check_adj = None
         if starting_code == None:
-            _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks, self.deg_phase, self.deg_bits, self.deg_cc)
+            _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks, self.deg_phase, self.deg_bit, self.deg_cc)
         else:
             bit_adj = starting_code[0]
             phase_adj = starting_code[1]
             check_adj = starting_code[2]
+
+        bit_adj = utils.numpy_to_parameter(bit_adj, self.device)
+        phase_adj = utils.numpy_to_parameter(phase_adj, self.device)
+        check_adj = utils.numpy_to_parameter(check_adj, self.device)
+        physical_error_rates = utils.numpy_to_parameter(physical_error_rates, self.device)
+
         scoring_model.requires_grad_(False)
+        physical_error_rates.requires_grad_(False)
         # Optimization originally from https://stackoverflow.com/questions/67328098/how-to-find-input-that-maximizes-output-of-a-neural-network-using-pytorch
         mse = torch.nn.MSELoss()
         optim = torch.optim.SGD([bit_adj, phase_adj, check_adj], lr=1e-1)
-        physical_error_rates.requires_grad_(False)
-        _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks,
-            self.deg_phase, self.deg_bit, self.deg_cc)
+        # physical_error_rates.requires_grad_(False)
+        goal_tensor = torch.tensor([[0.0]]).to(self.device).type(utils.get_numb_type())
+
         # TODO: starting?
         for _ in range(num_steps):
             # Optimize towards a 0 error rate
             # TODO: maybe doing 0 here makes things too aggressive... lets see
             loss = mse(scoring_model(bit_adj,
-                phase_adj, check_adj, physical_error_rates), 0.0)
+                phase_adj, check_adj, physical_error_rates), goal_tensor)
             loss.backward()
             # hmmm... we are doing some stepping here, but we have to make hard decisions eventually
             # Maybe this is where RL would be better...
@@ -45,9 +55,13 @@ class GeneratingModel():
 
         # Revert the model back
         scoring_model.requires_grad_(True)
-        print("OPTIMIZED", bit_adj, phase_adj, check_adj)
-        hard_decision = lambda f_tensor: (f_tensor >= 0.5).type(torch.int16)
-        return hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
+        # print("OPTIMIZED", bit_adj, phase_adj, check_adj)
+        hard_decision = lambda f_tensor: (f_tensor >= 0.5).squeeze(0).type(torch.int16).numpy()
+        bit_adj, phase_adj, check_adj = hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
+        # print("AAA", bit_adj)
+        pc = get_classical_code_cpc(bit_adj, phase_adj, check_adj)
+        # print("PCC", pc, bit_adj)
+        return pc, bit_adj, phase_adj, check_adj
 
     def mutate_origin_sample(self):
         """
