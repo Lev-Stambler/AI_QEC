@@ -1,6 +1,6 @@
 params = {
-	'n_data_qubits': 90,
-	'n_check_qubits': 70,
+	'n_data_qubits': 40,
+	'n_check_qubits': 30,
 	'deg_bit_lower': 2,
 	'deg_phase_lower': 2,
 	'deg_check_to_check_lower': 2,
