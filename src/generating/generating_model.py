@@ -12,11 +12,12 @@ from CPC.cpc_code import get_classical_code_cpc
 
 
 class GeneratingModel():
-    def __init__(self, device, p_skip_mutation=1.) -> None:
+    def __init__(self, device, p_skip_mutation=1., p_random_mutation=0.0) -> None:
         self.device = device
+        self.p_random_mutation = p_random_mutation
         self.p_skip_mutation = p_skip_mutation
     
-    def generate_sample(self, scoring_model, physical_error_rates, num_steps=40, starting_code=None, p_random_mutation=0.0):
+    def generate_sample(self, scoring_model, physical_error_rates, num_steps=40, starting_code=None, mutate=True):
         bit_adj = phase_adj = check_adj = None
         if starting_code == None:
             _, bit_adj, phase_adj, check_adj = random_cpc()
@@ -55,23 +56,23 @@ class GeneratingModel():
         # print("OPTIMIZED", bit_adj, phase_adj, check_adj)
         hard_decision = lambda f_tensor: (f_tensor >= 0.5).squeeze(0).type(torch.int16).numpy()
         bit_adj, phase_adj, check_adj = hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
-        if random.random() < self.p_skip_mutation and p_random_mutation > 0.:
+        if mutate and random.random() < self.p_skip_mutation and self.p_random_mutation > 0.:
             self.mutate(
-                bit_adj, phase_adj, check_adj, p_random_mutation
+                bit_adj, phase_adj, check_adj
             )
         # print("AAA", bit_adj)
         pc = get_classical_code_cpc(bit_adj, phase_adj, check_adj)
         # print("PCC", pc, bit_adj)
         return pc, bit_adj, phase_adj, check_adj
 
-    def mutate(self, bit_adj, phase_adj, check_adj, p_mutate):
+    def mutate(self, bit_adj, phase_adj, check_adj):
         """
         TODO: consider this method... like we can do random "mutations" to the output
         TODO: code. For now, lets skip this and keep it simple...
         """
-        p_edge_flip = p_mutate# TODO: what value??
+        p_edge_flip = self.p_random_mutation
         for data_bit in range(bit_adj.shape[0]):
-            for check in range(bit_adj.sha[1]):
+            for check in range(bit_adj.shape[1]):
                 if random.random() < p_edge_flip:
                    bit_adj[data_bit, check] = 1 - bit_adj[data_bit, check] 
                 if random.random() < p_edge_flip:

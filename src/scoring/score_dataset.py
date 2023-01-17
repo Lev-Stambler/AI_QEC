@@ -24,6 +24,7 @@ def sample_noisy_codespace(n, p_failures):
 
 
 # TODO: can we parallelize this dramatically? I think yes
+# TODO: move to utils
 def run_decoder(pc, n_runs, p_fails):
     n = pc.shape[1]
     rho = p_fails

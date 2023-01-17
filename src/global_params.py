@@ -14,7 +14,7 @@ params = {
 	'n_genetic_epochs': 3,
 	'n_score_testing_samples': 500,
 	'n_score_training_per_epoch_initial': 1_000,
-	'n_score_training_per_epoch_genetic': 500,
+	'n_score_training_per_epoch_genetic': 400,
 	'n_score_epochs': 2,
 	# The number of times to run a decoder to generate the error rate
 	'n_decoder_rounds': 10_000
