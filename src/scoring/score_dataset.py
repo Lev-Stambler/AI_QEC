@@ -44,12 +44,9 @@ def decode_random(params):
 # TODO: move to utils
 # Hmmm.... this is not working. Alternatively we just have the dataloader create the data upfront...
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
+    n = pc.shape[1]
+    rho = p_fails
     if multiproc:
-        n = pc.shape[1]
-        rho = p_fails
-        # bpd = bposd_decoder(pc, channel_probs=rho,
-        #                     bp_method="product_sum", osd_method="osd_e", osd_order=3, max_iter=5)
-
         block_size = 5_000
         assert(n_runs // block_size == n_runs / block_size, "Number of runs must be multiple of block size")
 

@@ -44,14 +44,14 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
             err = np.ones(n) * p
             pc, _, _, _ = gen_model.generate_sample(
                 scoring_model, err, mutate=False)
-            n_succ = run_decoder(pc, n_tests, err, multiproc=True)
+            n_succ = run_decoder(pc, n_tests, err, multiproc=False)
             cum_succ += n_succ
             for i in range(len(low_p)):
                 p = low_p[i]
                 err = np.ones(n) * p
                 pc, _, _, _ = gen_model.generate_sample(
                     scoring_model, err, mutate=False)
-                n_succ = run_decoder(pc, n_tests, err, multiproc=True)
+                n_succ = run_decoder(pc, n_tests, err, multiproc=False)
                 r = n_succ / n_tests
                 if r > best_low_p_succ_rate[i]:
                     best_low_p_succ_rate[i] = r
