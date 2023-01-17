@@ -1,7 +1,6 @@
 import math
 from global_params import params
 from torch.utils.data import DataLoader
-from IPython.display import display, clear_output
 import numpy as np
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
