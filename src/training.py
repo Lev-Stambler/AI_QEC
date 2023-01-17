@@ -1,4 +1,5 @@
 import torch
+import copy
 import utils
 import os
 import numpy as np
@@ -25,13 +26,13 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
 
-def train_score_model_with_generator(scoring_model: score_model.ScoringTransformer,
+def train_score_model_with_generator(scoring_model: score_model.ScoringTransformer, scoring_model_copy: score_model.ScoringTransformer,
                                      generating_model: gen_model.GeneratingModel, plot_loss=None, skip_testing=False):
     n = (generating_model.n_bits + generating_model.n_checks) * 2
 
     def ge(): return utils.sample_iid_error(n)
     err = ge()
-    def gc(): return generating_model.generate_sample(scoring_model, err)
+    def gc(): return generating_model.generate_sample(scoring_model_copy, err)
 
     scoring.score_training.main_training_loop(
         scoring_model, ge, gc, params['scoring_model_save_path'], params['n_score_training_samples_genetic'],  plot_loss, skip_testing=skip_testing)
@@ -57,8 +58,9 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
         pass
     for genetic_epoch in range(params['n_genetic_epochs']):
         print(f"Starting epoch #{genetic_epoch + 1}")
+        scoring_copied = copy.deepcopy(scoring_model)
         train_score_model_with_generator(
-            scoring_model, generating_model, plot_loss, skip_testing=skip_testing)
+            scoring_model, scoring_copied, generating_model, plot_loss, skip_testing=skip_testing)
 
     return scoring_model
 

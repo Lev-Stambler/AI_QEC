@@ -4,6 +4,7 @@ import numpy.typing as npt
 from bposd import bposd_decoder
 import numpy as np
 import utils
+from global_params import params
 
 
 def gen_random_ldpc(n, k, deg_row):
@@ -23,15 +24,15 @@ def sample_noisy_codespace(n, p_failures):
 
 
 # TODO: can we parallelize this dramatically? I think yes
-def run_decoder(pc_mat_systematic, n_runs, p_fails):
-    n = pc_mat_systematic.shape[1]
+def run_decoder(pc, n_runs, p_fails):
+    n = pc.shape[1]
     rho = p_fails
-    bpd = bposd_decoder(pc_mat_systematic, channel_probs=rho,
+    bpd = bposd_decoder(pc, channel_probs=rho,
                         bp_method="product_sum", osd_method="osd_e", osd_order=3, max_iter=5)
     n_succ = 0
     for i in range(n_runs):
         noise = sample_noisy_codespace(n, rho)
-        synd = (pc_mat_systematic @ noise) % 2
+        synd = (pc @ noise) % 2
         if sum(synd) == 0:
             n_succ += 1
         else:
@@ -44,11 +45,14 @@ def run_decoder(pc_mat_systematic, n_runs, p_fails):
 class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
 
-    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, item_sample_size=10_000):
+    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, item_sample_size=None):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
         self.dataset_size = dataset_size
-        self.item_sample_size = item_sample_size
+        if item_sample_size is not None:
+            self.item_sample_size = item_sample_size
+        else:
+            self.item_sample_size = params['n_decoder_rounds']
         super(ScoringDataset, self).__init__()
 
     def __getitem__(self, index):

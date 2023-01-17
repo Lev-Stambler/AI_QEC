@@ -19,7 +19,7 @@ class GeneratingModel():
         self.deg_cc = deg_cc
         self.device = device
     
-    def generate_sample(self, scoring_model, physical_error_rates, num_steps=10, starting_code=None):
+    def generate_sample(self, scoring_model, physical_error_rates, num_steps=20, starting_code=None):
         bit_adj = phase_adj = check_adj = None
         if starting_code == None:
             _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks, self.deg_phase, self.deg_bit, self.deg_cc)
@@ -39,7 +39,7 @@ class GeneratingModel():
         mse = torch.nn.MSELoss()
         optim = torch.optim.SGD([bit_adj, phase_adj, check_adj], lr=1e-1)
         # physical_error_rates.requires_grad_(False)
-        goal_tensor = torch.tensor([[0.0]]).to(self.device).type(utils.get_numb_type())
+        goal_tensor = torch.tensor([[1.0]]).to(self.device).type(utils.get_numb_type())
 
         # TODO: starting?
         for _ in range(num_steps):

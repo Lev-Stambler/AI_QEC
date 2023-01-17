@@ -42,7 +42,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             0).to(device).type(utils.get_numb_type()))
         if plot_loss is not None:
             plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item(),
-                              'Train std dev': train_std_dev, 'Real Error Rate': error_rate.mean().item()})
+                              'Train std dev': train_std_dev, 'Real Success Rate': error_rate.mean().item()})
             plot_loss.send()  # draw, update logs, etc
 
         model.zero_grad()
