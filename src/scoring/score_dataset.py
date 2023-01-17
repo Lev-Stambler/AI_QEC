@@ -42,24 +42,26 @@ def decode_random(params):
 
 # TODO: can we parallelize this dramatically? I think yes
 # TODO: move to utils
-def run_decoder(pc, n_runs, p_fails, multiproc=True):
-    n = pc.shape[1]
-    rho = p_fails
-    # bpd = bposd_decoder(pc, channel_probs=rho,
-    #                     bp_method="product_sum", osd_method="osd_e", osd_order=3, max_iter=5)
+# Hmmm.... this is not working. Alternatively we just have the dataloader create the data upfront...
+def run_decoder(pc, n_runs, p_fails, multiproc=False):
+    if multiproc:
+        n = pc.shape[1]
+        rho = p_fails
+        # bpd = bposd_decoder(pc, channel_probs=rho,
+        #                     bp_method="product_sum", osd_method="osd_e", osd_order=3, max_iter=5)
 
-    block_size = 5_000
-    assert(n_runs // block_size == n_runs / block_size, "Number of runs must be multiple of block size")
+        block_size = 5_000
+        assert(n_runs // block_size == n_runs / block_size, "Number of runs must be multiple of block size")
 
-    n_succ = 0
-    n_pools = n_runs // block_size
-    with Pool() as pool:
-        result = pool.map(decode_random, 
-            zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
-        for s in result: n_succ += s
-
-    return n_succ
-
+        n_succ = 0
+        n_pools = n_runs // block_size
+        with Pool() as pool:
+            result = pool.map(decode_random, 
+                zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
+            for s in result: n_succ += s
+        return n_succ
+    else:
+        return decode_random((n, rho, pc, n_runs))
 
 class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
