@@ -19,7 +19,7 @@ def train_score_model_with_generator(scoring_model: score_model.ScoringTransform
     def gc(): return generating_model.generate_sample(scoring_model_copy, err)
 
     scoring.score_training.main_training_loop(
-        scoring_model, ge, gc, params['scoring_model_save_path'], params['n_score_training_samples_genetic'],  plot_loss, skip_testing=skip_testing)
+        scoring_model, ge, gc, params['scoring_model_save_path'], params['n_score_training_per_epoch_genetic'],  plot_loss, skip_testing=skip_testing)
 
 
 def main(qubit_err_probs):
@@ -31,7 +31,7 @@ def main(qubit_err_probs):
 
     generating_model = None
     generating_model = gen_model.GeneratingModel(
-        params['n_data_qubits'], params['n_check_qubits'],  params['deg_phase'], params['deg_bit'], params['deg_check_to_check'], device=device
+        device=device
     )
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
     pc, _, _, _ = generating_model.generate_sample(

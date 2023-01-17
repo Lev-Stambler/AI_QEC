@@ -4,6 +4,7 @@
 # Backprop with some loss function and a goal tensor
 # ...
 # Profit!
+import random
 import torch
 import utils
 from CPC.generate_random import random_cpc
@@ -11,18 +12,14 @@ from CPC.cpc_code import get_classical_code_cpc
 
 
 class GeneratingModel():
-    def __init__(self, n_bits, n_checks, deg_phase, deg_bit, deg_cc, device) -> None:
-        self.n_bits = n_bits
-        self.n_checks = n_checks
-        self.deg_phase = deg_phase
-        self.deg_bit = deg_bit
-        self.deg_cc = deg_cc
+    def __init__(self, device, p_skip_mutation=1.) -> None:
         self.device = device
+        self.p_skip_mutation = p_skip_mutation
     
-    def generate_sample(self, scoring_model, physical_error_rates, num_steps=20, starting_code=None):
+    def generate_sample(self, scoring_model, physical_error_rates, num_steps=40, starting_code=None, p_random_mutation=0.0):
         bit_adj = phase_adj = check_adj = None
         if starting_code == None:
-            _, bit_adj, phase_adj, check_adj = random_cpc(self.n_bits, self.n_checks, self.deg_phase, self.deg_bit, self.deg_cc)
+            _, bit_adj, phase_adj, check_adj = random_cpc()
         else:
             bit_adj = starting_code[0]
             phase_adj = starting_code[1]
@@ -58,15 +55,30 @@ class GeneratingModel():
         # print("OPTIMIZED", bit_adj, phase_adj, check_adj)
         hard_decision = lambda f_tensor: (f_tensor >= 0.5).squeeze(0).type(torch.int16).numpy()
         bit_adj, phase_adj, check_adj = hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
+        if random.random() < self.p_skip_mutation and p_random_mutation > 0.:
+            self.mutate(
+                bit_adj, phase_adj, check_adj, p_random_mutation
+            )
         # print("AAA", bit_adj)
         pc = get_classical_code_cpc(bit_adj, phase_adj, check_adj)
         # print("PCC", pc, bit_adj)
         return pc, bit_adj, phase_adj, check_adj
 
-    def mutate_origin_sample(self):
+    def mutate(self, bit_adj, phase_adj, check_adj, p_mutate):
         """
         TODO: consider this method... like we can do random "mutations" to the output
         TODO: code. For now, lets skip this and keep it simple...
         """
-        pass
+        p_edge_flip = p_mutate# TODO: what value??
+        for data_bit in range(bit_adj.shape[0]):
+            for check in range(bit_adj.sha[1]):
+                if random.random() < p_edge_flip:
+                   bit_adj[data_bit, check] = 1 - bit_adj[data_bit, check] 
+                if random.random() < p_edge_flip:
+                   phase_adj[data_bit, check] = 1 - phase_adj[data_bit, check] 
+        for check_1 in range(check_adj.shape[0]):
+            for check_2 in range(check_1):
+                if random.random() < p_edge_flip:
+                    check_adj[check_1, check_2] = 1- check_adj[check_1, check_2]
+                    check_adj[check_2, check_1] = 1- check_adj[check_2, check_1]
 

@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from global_params import params
 import torch
@@ -102,12 +103,15 @@ def HtoG(H):
     G = np.concatenate((P, Ik), axis=0)
     return G
 
+
 def sample_iid_error(n):
-    p = params['constant_error_rate']
+    p = random.random() * (params['constant_error_rate_upper'] - params['constant_error_rate_lower']) + params['constant_error_rate_lower']
     return np.ones((n)) * p
+
 
 def get_numb_type():
     return torch.float32 if torch.cuda.is_available() else torch.double
+
 
 def numpy_to_parameter(np_arr, device, unsqueeze=True):
     if unsqueeze:

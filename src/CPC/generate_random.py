@@ -1,15 +1,23 @@
 import numpy as np
+import random
+from global_params import params
 
 from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 
 
-def random_cpc(n_bits: int, n_checks: int, deg_phase: int, deg_bit: int, deg_cc: int) -> CPCCode:
+def random_cpc() -> CPCCode:
     """
     TODO: I think "relaxing" the degree requirement would make life **a lot**
     TODO: easier when generalizing the search space. Maybe we have like a "range"
     TODO: and uniformly sample from there. Selection for lower degree or not can be built into
     TODO: the error simulator via Stim
     """
+    n_bits = params['n_data_qubits']
+    n_checks = params['n_check_qubits']
+    deg_phase = random.randint(params['deg_phase_lower'], params['deg_phase_upper'])
+    deg_bit = random.randint(params['deg_bit_lower'], params['deg_bit_upper'])
+    deg_cc = random.randint(params['deg_check_to_check_lower'], params['deg_check_to_check_upper'])
+
     bit_vertices = [CPCVertex(i, data_qubit=True) for i in range(n_bits)]
     check_vertices = [CPCVertex(i + n_bits, check_qubit=True) for i in range(n_checks)]
     edges = []
