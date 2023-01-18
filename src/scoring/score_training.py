@@ -112,7 +112,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     batch_size = 1
     # Use a new random code after 32 runs, we do not want this to be too high as we are
     # trying to learn a **general** decoder
-    workers = 1
+    workers = 0
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
