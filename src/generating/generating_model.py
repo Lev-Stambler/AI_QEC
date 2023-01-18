@@ -54,7 +54,7 @@ class GeneratingModel():
         # Revert the model back
         scoring_model.requires_grad_(True)
         # print("OPTIMIZED", bit_adj, phase_adj, check_adj)
-        hard_decision = lambda f_tensor: (f_tensor >= 0.5).squeeze(0).type(torch.int16).numpy()
+        hard_decision = lambda f_tensor: (f_tensor >= 0.5).squeeze(0).type(torch.int16).cpu().numpy()
         bit_adj, phase_adj, check_adj = hard_decision(bit_adj), hard_decision(phase_adj), hard_decision(check_adj)
         if mutate and random.random() < self.p_skip_mutation and self.p_random_mutation > 0.:
             self.mutate(
