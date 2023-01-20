@@ -1,3 +1,4 @@
+from json import JSONEncoder
 import random
 import numpy as np
 from global_params import params
@@ -120,3 +121,9 @@ def numpy_to_parameter(np_arr, device, unsqueeze=True):
     else:
         return torch.nn.parameter.Parameter(
             torch.from_numpy(np_arr).to(device).type(get_numb_type()))
+
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)

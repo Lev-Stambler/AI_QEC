@@ -125,10 +125,10 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     test_size = params['n_score_testing_samples']
 
     # TODO: scoring data loader...
-    train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=train_size), batch_size=int(batch_size),
+    train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=f"code_[{params['n_data_qubits']}, {params['n_data_qubits'] - params['n_check_qubits']}]", dataset_size=train_size), batch_size=int(batch_size),
                                   shuffle=True, num_workers=workers)
-    test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
-                                 batch_size=int(test_batch_size), shuffle=False, num_workers=workers)
+    # test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
+    #                              batch_size=int(test_batch_size), shuffle=False, num_workers=workers)
 
     #################################
     # TODO: increase the batch size so loss is a better metric for saving
@@ -144,9 +144,9 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
             best_loss = loss
             torch.save(model, save_path)
             print("Saving Model at Epoch", epoch)
-        if not skip_testing:
-            test_loss_list = test(
-                model, device, test_dataloader)
-            print("Losses for test of", test_loss_list)
+        # if not skip_testing:
+        #     test_loss_list = test(
+        #         model, device, test_dataloader)
+        #     print("Losses for test of", test_loss_list)
         # clear_output(wait=True)
         print(f"Epoch {epoch} finished, loss: {loss}")

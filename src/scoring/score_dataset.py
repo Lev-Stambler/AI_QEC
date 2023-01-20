@@ -1,4 +1,6 @@
 from typing import Callable
+import json
+import os
 from multiprocessing import Pool, Process
 import torch
 import numpy.typing as npt
@@ -23,6 +25,7 @@ def gen_random_ldpc(n, k, deg_row):
 def sample_noisy_codespace(n, p_failures):
     return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
+
 def decode_random(params):
     n, rho, pc, block_size = params
     s = 0
@@ -43,27 +46,35 @@ def decode_random(params):
 # TODO: can we parallelize this dramatically? I think yes
 # TODO: move to utils
 # Hmmm.... this is not working. Alternatively we just have the dataloader create the data upfront...
+
+
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
     n = pc.shape[1]
     rho = p_fails
     if multiproc:
         block_size = 5_000
-        assert(n_runs // block_size == n_runs / block_size, "Number of runs must be multiple of block size")
+        assert (n_runs // block_size == n_runs / block_size,
+                "Number of runs must be multiple of block size")
 
         n_succ = 0
         n_pools = n_runs // block_size
         with Pool() as pool:
-            result = pool.map(decode_random, 
-                zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
-            for s in result: n_succ += s
+            result = pool.map(decode_random,
+                              zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
+            for s in result:
+                n_succ += s
         return n_succ
     else:
         return decode_random((n, rho, pc, n_runs))
 
+def get_data_sample_file(dir, numb):
+    return os.path.join(dir, f"d{numb}.json")
+
 class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
 
-    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, item_sample_size=None):
+    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, load_save_dir,
+                 item_sample_size=None):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
         self.dataset_size = dataset_size
@@ -71,19 +82,51 @@ class ScoringDataset(torch.utils.data.Dataset):
             self.item_sample_size = item_sample_size
         else:
             self.item_sample_size = params['n_decoder_rounds']
+
+        print("Starting data generation")    
+		# Load the data
+        if not os.path.exists(load_save_dir):
+            os.mkdir(load_save_dir)
+
+        for i in range(dataset_size):
+            if not os.path.exists(get_data_sample_file(load_save_dir, i)):
+                self.generate_error_file(get_data_sample_file(load_save_dir, i))
+
+		print("Done with data generation")
+        self.load_save_dir = load_save_dir
         super(ScoringDataset, self).__init__()
 
     def __getitem__(self, index):
-        cpc_code_pc, bit_adj, phase_adj, check_adj = self.random_code()
-        e = self.error_prob()
-        error_rate = self.calculate_error_rate(cpc_code_pc, e)
-        # sample = {'code': H, 'error_probs': e, 'frame_error_rate': error_rate}
+        d = None
+        with open(get_data_sample_file(self.load_save_dir, index), 'r') as openfile:
+            # Reading from json file
+            d = json.load(openfile)
 
         e_type = np.float32 if torch.cuda.is_available() else np.double
-        return (bit_adj, phase_adj, check_adj, e.astype(e_type), error_rate)
+        return (np.asarray(d['bit_adj']), np.asarray(d['phase_adj']), np.asarray(d['check_adj']), np.asarray(d['err_distr']).astype(e_type),
+            d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
         return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
+
+    def generate_error_file(self, file_name):
+        e = self.error_prob()
+        cpc_code_pc, bit_adj, phase_adj, check_adj = self.random_code()
+        err_rate = self.calculate_error_rate(cpc_code_pc, e)
+        dictionary = {}
+        dictionary['bit_adj'] = bit_adj
+        dictionary['phase_adj'] = phase_adj
+        dictionary['check_adj'] = check_adj
+        dictionary['err_rate'] = err_rate
+        dictionary['err_distr'] = e
+
+        json_object = json.dumps(dictionary, cls=utils.NumpyArrayEncoder)
+ 
+        # Writing to sample.json
+        with open(file_name, "w") as outfile:
+            outfile.write(json_object)
+
+
 
     def __len__(self):
         return self.dataset_size
