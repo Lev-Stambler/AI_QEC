@@ -92,8 +92,8 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
     if not load_saved_generating_model:
         generating_model = gen_model.GeneratingModel(
             device=device,
-            p_skip_mutation=0.5,
-            p_random_mutation=0.005  # TODO: I really do not know...
+            p_skip_mutation=params['p_skip_mutation'],
+            p_random_mutation=params['p_random_mutation'],
         )
     else:
         # TODO: load generating model??
