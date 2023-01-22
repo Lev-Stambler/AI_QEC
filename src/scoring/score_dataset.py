@@ -67,8 +67,10 @@ def run_decoder(pc, n_runs, p_fails, multiproc=False):
     else:
         return decode_random((n, rho, pc, n_runs))
 
+
 def get_data_sample_file(dir, numb):
     return os.path.join(dir, f"d{numb}.json")
+
 
 class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
@@ -83,16 +85,19 @@ class ScoringDataset(torch.utils.data.Dataset):
         else:
             self.item_sample_size = params['n_decoder_rounds']
 
-        print("Starting data generation")    
-		# Load the data
+        print("Starting data generation")
+        # Load the data
         if not os.path.exists(load_save_dir):
             os.mkdir(load_save_dir)
 
         for i in range(dataset_size):
             if not os.path.exists(get_data_sample_file(load_save_dir, i)):
-                self.generate_error_file(get_data_sample_file(load_save_dir, i))
+                self.generate_error_file(
+                    get_data_sample_file(load_save_dir, i))
+            if i % 1_000 == 0 and i != 0:
+                print("Done generating sample", i)
 
-		print("Done with data generation")
+        print("Done with data generation")
         self.load_save_dir = load_save_dir
         super(ScoringDataset, self).__init__()
 
@@ -104,7 +109,7 @@ class ScoringDataset(torch.utils.data.Dataset):
 
         e_type = np.float32 if torch.cuda.is_available() else np.double
         return (np.asarray(d['bit_adj']), np.asarray(d['phase_adj']), np.asarray(d['check_adj']), np.asarray(d['err_distr']).astype(e_type),
-            d['err_rate'])
+                d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
         return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
@@ -121,12 +126,10 @@ class ScoringDataset(torch.utils.data.Dataset):
         dictionary['err_distr'] = e
 
         json_object = json.dumps(dictionary, cls=utils.NumpyArrayEncoder)
- 
+
         # Writing to sample.json
         with open(file_name, "w") as outfile:
             outfile.write(json_object)
-
-
 
     def __len__(self):
         return self.dataset_size

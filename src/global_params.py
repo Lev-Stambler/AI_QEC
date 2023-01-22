@@ -10,7 +10,6 @@ params = {
 	# TODO: delete the below
 	'constant_error_rate_lower': 0.0075, # lower bounding here is tricky as we need stat sig
 	'constant_error_rate_upper': 0.1,
-	'scoring_model_save_path': 'best_scoring_model',
 	'n_genetic_epochs': 10,
 	'n_score_testing_samples': 500,
 	'n_score_training_per_epoch_initial': 10_000,

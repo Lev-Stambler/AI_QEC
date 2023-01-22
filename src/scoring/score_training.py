@@ -98,8 +98,11 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader):
 ##################################################################
 ##################################################################
 
+def get_save_dir(prefix):
+    return f"data/{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
 
-def main_training_loop(model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, skip_testing=False):
+
+def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, skip_testing=False):
     """
     Train the scoring model.
     Here we assume that the random_code_sample function always returns the same parity check
@@ -125,7 +128,7 @@ def main_training_loop(model, error_prob_sample, random_code_sample, save_path, 
     test_size = params['n_score_testing_samples']
 
     # TODO: scoring data loader...
-    train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=f"code_[{params['n_data_qubits']}, {params['n_data_qubits'] - params['n_check_qubits']}]", dataset_size=train_size), batch_size=int(batch_size),
+    train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=get_save_dir(data_dir_prefix), dataset_size=train_size), batch_size=int(batch_size),
                                   shuffle=True, num_workers=workers)
     # test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
     #                              batch_size=int(test_batch_size), shuffle=False, num_workers=workers)

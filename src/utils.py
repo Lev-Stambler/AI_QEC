@@ -127,3 +127,6 @@ class NumpyArrayEncoder(JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
+
+def get_best_scoring_model_path():
+    return f"best_scoring/best_model_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
