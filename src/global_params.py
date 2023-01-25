@@ -11,8 +11,8 @@ params = {
 	'constant_error_rate_lower': 0.0075, # lower bounding here is tricky as we need stat sig
 	'constant_error_rate_upper': 0.1,
 	'n_genetic_epochs': 10,
-	'n_score_testing_samples': 500,
-	'n_score_training_per_epoch_initial': 10_000,
+	'n_score_testing_samples': 50,
+	'n_score_training_per_epoch_initial': 1630,#10_000,
 	'n_score_training_per_epoch_genetic': 500,
 	'n_score_epochs': 1,
 	# The number of times to run a decoder to generate the error rate
