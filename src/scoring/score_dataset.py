@@ -1,4 +1,5 @@
 from typing import Callable
+import math
 import json
 import os
 from multiprocessing import Pool, Process
@@ -51,21 +52,20 @@ def decode_random(params):
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
     n = pc.shape[1]
     rho = p_fails
-    if multiproc:
-        block_size = 5_000
-        assert (n_runs // block_size == n_runs / block_size,
-                "Number of runs must be multiple of block size")
+    # if multiproc:
+    #     block_size = 5_000
+    #     assert n_runs // block_size == n_runs / block_size, "Number of runs must be multiple of block size"
 
-        n_succ = 0
-        n_pools = n_runs // block_size
-        with Pool() as pool:
-            result = pool.map(decode_random,
-                              zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
-            for s in result:
-                n_succ += s
-        return n_succ
-    else:
-        return decode_random((n, rho, pc, n_runs))
+    #     n_succ = 0
+    #     n_pools = n_runs // block_size
+    #     with Pool() as pool:
+    #         result = pool.map(decode_random,
+    #                           zip([n] * n_pools, [rho] * n_pools, [pc] * n_pools, [block_size] * n_pools))
+    #         for s in result:
+    #             n_succ += s
+    #     return n_succ
+    # else:
+    return decode_random((n, rho, pc, n_runs))
 
 
 def get_data_sample_file(dir, numb):
@@ -80,6 +80,9 @@ class ScoringDataset(torch.utils.data.Dataset):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
         self.dataset_size = dataset_size
+        self.load_save_dir = load_save_dir
+        self.unnormalized_sample_prob = []
+
         if item_sample_size is not None:
             self.item_sample_size = item_sample_size
         else:
@@ -94,18 +97,37 @@ class ScoringDataset(torch.utils.data.Dataset):
             if not os.path.exists(get_data_sample_file(load_save_dir, i)):
                 self.generate_error_file(
                     get_data_sample_file(load_save_dir, i))
+            
+            err_rate = self.load_file(i)["err_rate"]
+            scaling = 3
+            self.unnormalized_sample_prob.append(math.e ** (scaling * err_rate))
+
             if i % 1_000 == 0 and i != 0:
                 print("Done generating sample", i)
+        
+        normalizing = sum(self.unnormalized_sample_prob)
+        self.normalized_probs = [p / normalizing for p in self.unnormalized_sample_prob]
 
         print("Done with data generation")
-        self.load_save_dir = load_save_dir
         super(ScoringDataset, self).__init__()
 
-    def __getitem__(self, index):
+    def load_file(self, index):
         d = None
         with open(get_data_sample_file(self.load_save_dir, index), 'r') as openfile:
             # Reading from json file
             d = json.load(openfile)
+        return d
+
+    def __getitem__(self, _index):
+        """
+        Hmmm... clearly we have a problem. Maybe instead we randomly sample all where higher
+        weighted ones get a higher prob of being sampled? Lets do something simple
+        like normalize over e^((x/2)^2).
+        """
+        index = np.random.choice(np.arange(self.dataset_size), p=self.normalized_probs)
+        print(f"Loading Index {index}")
+
+        d = self.load_file(index)
 
         e_type = np.float32 if torch.cuda.is_available() else np.double
         return (np.asarray(d['bit_adj']), np.asarray(d['phase_adj']), np.asarray(d['check_adj']), np.asarray(d['err_distr']).astype(e_type),
