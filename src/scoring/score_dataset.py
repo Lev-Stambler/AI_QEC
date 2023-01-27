@@ -75,12 +75,13 @@ def get_data_sample_file(dir, numb):
 class ScoringDataset(torch.utils.data.Dataset):
     """Some Information about MyDataset"""
 
-    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], dataset_size, load_save_dir,
+    def __init__(self, error_prob_sample: Callable[[], npt.NDArray], random_code_sample: Callable[[], npt.NDArray], raw_dataset_size, load_save_dir,
                  item_sample_size=None):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
-        self.dataset_size = dataset_size
+        self.raw_dataset_size = raw_dataset_size
         self.load_save_dir = load_save_dir
+        self.samples = []
         self.unnormalized_sample_prob = []
 
         if item_sample_size is not None:
@@ -93,20 +94,26 @@ class ScoringDataset(torch.utils.data.Dataset):
         if not os.path.exists(load_save_dir):
             os.mkdir(load_save_dir)
 
-        for i in range(dataset_size):
+        scaling = 1.2
+        for i in range(raw_dataset_size):
             if not os.path.exists(get_data_sample_file(load_save_dir, i)):
                 self.generate_error_file(
                     get_data_sample_file(load_save_dir, i))
-            
-            err_rate = self.load_file(i)["err_rate"]
-            scaling = 5
-            self.unnormalized_sample_prob.append(math.e ** (scaling * err_rate))
+
+            d = self.load_file(i)
+            if d["err_distr"][0] >= params["constant_error_rate_lower"] and \
+                    d["err_distr"][0] <= params["constant_error_rate_upper"]:
+                self.samples.append(d)
+                self.unnormalized_sample_prob.append(math.e ** (scaling * d["err_rate"]))
+                # self.unnormalized_sample_prob.append(0.01)
 
             if i % 1_000 == 0 and i != 0:
                 print("Done generating sample", i)
-        
+
         normalizing = sum(self.unnormalized_sample_prob)
-        self.normalized_probs = [p / normalizing for p in self.unnormalized_sample_prob]
+        self.dataset_size = len(self.samples)
+        self.normalized_probs = [
+            p / normalizing for p in self.unnormalized_sample_prob]
 
         print("Done with data generation")
         super(ScoringDataset, self).__init__()
@@ -124,11 +131,11 @@ class ScoringDataset(torch.utils.data.Dataset):
         weighted ones get a higher prob of being sampled? Lets do something simple
         like normalize over e^((x/2)^2).
         """
-        index = np.random.choice(np.arange(self.dataset_size), p=self.normalized_probs)
+        index = np.random.choice(
+            np.arange(self.dataset_size), p=self.normalized_probs)
         print(f"Loading Index {index}")
 
-        d = self.load_file(index)
-
+        d = self.samples[index]
         e_type = np.float32 if torch.cuda.is_available() else np.double
         return (np.asarray(d['bit_adj']), np.asarray(d['phase_adj']), np.asarray(d['check_adj']), np.asarray(d['err_distr']).astype(e_type),
                 d['err_rate'])

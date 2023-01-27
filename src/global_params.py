@@ -9,7 +9,7 @@ params = {
 	'deg_check_to_check_upper': 10,
 	# TODO: delete the below
 	'constant_error_rate_lower': 0.0075, # lower bounding here is tricky as we need stat sig
-	'constant_error_rate_upper': 0.1,
+	'constant_error_rate_upper': 0.05,
 	'n_genetic_epochs': 10,
 	'n_score_testing_samples': 50,
 	'n_score_training_per_epoch_initial': 1630,#10_000,

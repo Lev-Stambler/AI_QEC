@@ -17,8 +17,8 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
     def ge(): return utils.sample_iid_error(n)
-    N_dec = 4 # CHanged from 6
-    h = 4  # changed from 8
+    N_dec = 6 # CHanged from 6
+    h = 8  # changed from 8
     d_model = 32
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device)
