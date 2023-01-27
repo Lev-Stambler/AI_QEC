@@ -99,7 +99,7 @@ class ScoringDataset(torch.utils.data.Dataset):
                     get_data_sample_file(load_save_dir, i))
             
             err_rate = self.load_file(i)["err_rate"]
-            scaling = 3
+            scaling = 5
             self.unnormalized_sample_prob.append(math.e ** (scaling * err_rate))
 
             if i % 1_000 == 0 and i != 0:

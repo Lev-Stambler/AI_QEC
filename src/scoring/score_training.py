@@ -110,7 +110,7 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #################################
-    lr = 1e-4
+    lr = 1e-6
     epochs = params['n_score_epochs']
     batch_size = 1
     # Use a new random code after 32 runs, we do not want this to be too high as we are
