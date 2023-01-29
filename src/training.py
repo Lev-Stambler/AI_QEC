@@ -11,7 +11,7 @@ import scoring
 from global_params import params
 
 
-def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
+def initialize_scoring_model(device, plot_loss=None, skip_testing=False, scoring_model=None):
     def gc(): return scoring.initial_code_sampling.generate_code()
     sample_code, _, _, _ = gc()
     n = sample_code.shape[-1]
@@ -21,14 +21,14 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False):
     h = 8  # changed from 8
     d_model = 32
     model = score_model.ScoringTransformer(
-        params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device)
+        params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device) if scoring_model is None else scoring_model
     scoring.score_training.main_training_loop(
         "initialization", model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_initial'], plot_loss, skip_testing=skip_testing)
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
 
-def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, p_phys_flips: list[int], low_p: list[int], epoch, n_tests=50_000, averaging_samples=5, out_file='results.json'):
+def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, p_phys_flips: list[int], low_p: list[int], epoch, n_tests=5_000, averaging_samples=5, out_file='results.json'):
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
 
     json_object = None
@@ -78,17 +78,17 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
         scoring_model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_genetic'],  plot_loss, skip_testing=skip_testing)
 
 
-def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False):
+def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False, skip_initialization_training=False, skip_eval=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
-    if not load_saved_scoring_model:
-        scoring_model = initialize_scoring_model(
-            device, plot_loss, skip_testing=skip_testing)
-    else:
+    if load_saved_scoring_model:
         scoring_model = torch.load(os.path.join(
             utils.get_best_scoring_model_path()))
-    generating_model = None
+
+    if not skip_initialization_training:
+        scoring_model = initialize_scoring_model(
+            device, plot_loss, skip_testing=skip_testing, scoring_model=scoring_model)
     if not load_saved_generating_model:
         generating_model = gen_model.GeneratingModel(
             device=device,
@@ -102,16 +102,18 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
     p_eval_range = [params['constant_error_rate_lower'],
                params['constant_error_rate_upper']]
     for genetic_epoch in range(params['n_genetic_epochs']):
-        evaluate_performance(scoring_model, generating_model, p_eval_range, [
-                             0.001, 0.005, 0.01, 0.015], genetic_epoch)
+        if not skip_eval:
+            evaluate_performance(scoring_model, generating_model, p_eval_range, [
+                                 0.001, 0.005, 0.01, 0.015], genetic_epoch)
         print(f"Starting epoch #{genetic_epoch + 1}")
         scoring_copied = copy.deepcopy(scoring_model)
         train_score_model_with_generator(genetic_epoch,
             scoring_model, scoring_copied, generating_model, plot_loss, skip_testing=skip_testing)
         del scoring_copied
         # TODO: make p_range better
-    evaluate_performance(scoring_model, generating_model, p_eval_range, [
-                         0.001, 0.005, 0.01, 0.015], genetic_epoch)
+    if not skip_eval:
+        evaluate_performance(scoring_model, generating_model, p_eval_range, [
+                            0.001, 0.005, 0.01, 0.015], genetic_epoch)
 
     return scoring_model
 

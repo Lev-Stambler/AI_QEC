@@ -1,4 +1,5 @@
 from typing import Callable
+from ldpc.bp_decode_sim import classical_decode_sim
 import math
 import json
 import os
@@ -49,7 +50,26 @@ def decode_random(params):
 # Hmmm.... this is not working. Alternatively we just have the dataloader create the data upfront...
 
 
+# TODO: we only support a constant error rate here
+def run_decoder_bp_only(pc, n_runs, err_rate):
+    output_dict = {}
+    classical_decode_sim(
+        pc,
+        err_rate,
+        target_runs=n_runs,
+        max_iter=30,
+        seed=100,
+        bp_method='ms',
+        ms_scaling_factor=1,
+        # output_file="classical_bp_decode_sim_output.json",
+        output_dict=output_dict
+    )
+    # print(output_dict)
+    return output_dict['bp_success_count']
+
+
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
+    return run_decoder_bp_only(pc, n_runs, p_fails[0])
     n = pc.shape[1]
     rho = p_fails
     # if multiproc:
@@ -79,43 +99,15 @@ class ScoringDataset(torch.utils.data.Dataset):
                  item_sample_size=None):
         self.error_prob = error_prob_sample
         self.random_code = random_code_sample
-        self.raw_dataset_size = raw_dataset_size
         self.load_save_dir = load_save_dir
-        self.samples = []
-        self.unnormalized_sample_prob = []
-
+        self.dataset_size = raw_dataset_size
         if item_sample_size is not None:
             self.item_sample_size = item_sample_size
         else:
             self.item_sample_size = params['n_decoder_rounds']
 
-        print("Starting data generation")
-        # Load the data
-        if not os.path.exists(load_save_dir):
-            os.mkdir(load_save_dir)
 
-        scaling = 1.2
-        for i in range(raw_dataset_size):
-            if not os.path.exists(get_data_sample_file(load_save_dir, i)):
-                self.generate_error_file(
-                    get_data_sample_file(load_save_dir, i))
 
-            d = self.load_file(i)
-            if d["err_distr"][0] >= params["constant_error_rate_lower"] and \
-                    d["err_distr"][0] <= params["constant_error_rate_upper"]:
-                self.samples.append(d)
-                self.unnormalized_sample_prob.append(math.e ** (scaling * d["err_rate"]))
-                # self.unnormalized_sample_prob.append(0.01)
-
-            if i % 1_000 == 0 and i != 0:
-                print("Done generating sample", i)
-
-        normalizing = sum(self.unnormalized_sample_prob)
-        self.dataset_size = len(self.samples)
-        self.normalized_probs = [
-            p / normalizing for p in self.unnormalized_sample_prob]
-
-        print("Done with data generation")
         super(ScoringDataset, self).__init__()
 
     def load_file(self, index):
@@ -131,11 +123,15 @@ class ScoringDataset(torch.utils.data.Dataset):
         weighted ones get a higher prob of being sampled? Lets do something simple
         like normalize over e^((x/2)^2).
         """
-        index = np.random.choice(
-            np.arange(self.dataset_size), p=self.normalized_probs)
-        print(f"Loading Index {index}")
 
-        d = self.samples[index]
+		
+        i = _index
+        if not os.path.exists(get_data_sample_file(self.load_save_dir, i)):
+            self.generate_error_file(
+                get_data_sample_file(self.load_save_dir, i))
+
+
+        d = self.load_file(i)
         e_type = np.float32 if torch.cuda.is_available() else np.double
         return (np.asarray(d['bit_adj']), np.asarray(d['phase_adj']), np.asarray(d['check_adj']), np.asarray(d['err_distr']).astype(e_type),
                 d['err_rate'])
