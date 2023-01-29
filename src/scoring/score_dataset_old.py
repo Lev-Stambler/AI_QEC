@@ -84,7 +84,7 @@ def run_decoder(pc, n_runs, p_fails, multiproc=False):
     #             n_succ += s
     #     return n_succ
     # else:
-    return decode_random((n, rho, pc, n_runs))
+    return decode_random((n, rho, pc, n_runs)) / n_runs
 
 
 def get_data_sample_file(dir, numb):
@@ -160,7 +160,7 @@ class ScoringDataset(torch.utils.data.Dataset):
                 d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
-        return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
+        return run_decoder(code, self.item_sample_size, error_prob)
 
     def generate_error_file(self, file_name):
         e = self.error_prob()

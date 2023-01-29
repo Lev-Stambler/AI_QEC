@@ -28,13 +28,13 @@ def sample_noisy_codespace(n, p_failures):
     return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
 
-def decode_random(params):
+def decode_random(params, err_bar_cutoff=0.01):
     n, rho, pc, block_size = params
     s = 0
 
     bpd = bposd_decoder(pc, channel_probs=rho,
-                        bp_method="product_sum", osd_method="osd_e", osd_order=3, max_iter=5)
-    for _ in range(block_size):
+                        bp_method="ms", osd_method="osd_cs", osd_order=3, max_iter=5)
+    for i in range(block_size):
         noise = sample_noisy_codespace(n, rho)
         synd = (pc @ noise) % 2
         if sum(synd) == 0:
@@ -43,7 +43,16 @@ def decode_random(params):
             eded = bpd.decode(synd)
             eq = np.array_equal(eded, noise)
             s += int(eq)
-    return s
+
+        n_runs = i + 1
+        if n_runs > 100:
+            p = s / n_runs
+            q = 1 - p
+            bp_frame_error_rate_eb = np.sqrt(q*p/n_runs)
+            # print(bp_frame_error_rate_eb, p,err_bar_cutoff)
+            if bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
+                return p
+    return s / block_size
 
 # TODO: can we parallelize this dramatically? I think yes
 # TODO: move to utils
@@ -57,19 +66,19 @@ def run_decoder_bp_only(pc, n_runs, err_rate):
         pc,
         err_rate,
         target_runs=n_runs,
-        max_iter=30,
+        max_iter=60,
         seed=100,
         bp_method='ms',
         ms_scaling_factor=1,
         # output_file="classical_bp_decode_sim_output.json",
         output_dict=output_dict
     )
-    # print(output_dict)
-    return output_dict['bp_success_count']
+    print(output_dict)
+    return output_dict['bp_success_count'] / output_dict['run_count']
 
 
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
-    return run_decoder_bp_only(pc, n_runs, p_fails[0])
+    # return run_decoder_bp_only(pc, n_runs, p_fails[0])
     n = pc.shape[1]
     rho = p_fails
     # if multiproc:
@@ -106,7 +115,9 @@ class ScoringDataset(torch.utils.data.Dataset):
         else:
             self.item_sample_size = params['n_decoder_rounds']
 
-
+        # Load the data
+        if not os.path.exists(load_save_dir):
+            os.mkdir(load_save_dir)
 
         super(ScoringDataset, self).__init__()
 
@@ -124,12 +135,10 @@ class ScoringDataset(torch.utils.data.Dataset):
         like normalize over e^((x/2)^2).
         """
 
-		
         i = _index
         if not os.path.exists(get_data_sample_file(self.load_save_dir, i)):
             self.generate_error_file(
                 get_data_sample_file(self.load_save_dir, i))
-
 
         d = self.load_file(i)
         e_type = np.float32 if torch.cuda.is_available() else np.double
@@ -137,7 +146,7 @@ class ScoringDataset(torch.utils.data.Dataset):
                 d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
-        return run_decoder(code, self.item_sample_size, error_prob) / self.item_sample_size
+        return run_decoder(code, self.item_sample_size, error_prob)
 
     def generate_error_file(self, file_name):
         e = self.error_prob()

@@ -39,24 +39,23 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
     json_object[f"epoch_{epoch}"] = {}
     best_low_p_succ_rate = [0.0] * len(low_p)
     for p in p_phys_flips:
-        cum_succ = 0
+        cum_succ_rate = 0
         for _ in range(averaging_samples):
             err = np.ones(n) * p
             pc, _, _, _ = gen_model.generate_sample(
                 scoring_model, err, mutate=False)
-            n_succ = run_decoder(pc, n_tests, err, multiproc=False)
-            cum_succ += n_succ
+            succ_rate = run_decoder(pc, n_tests, err, multiproc=False)
+            cum_ucc_rate += succ_rate
             for i in range(len(low_p)):
                 p = low_p[i]
                 err = np.ones(n) * p
                 pc, _, _, _ = gen_model.generate_sample(
                     scoring_model, err, mutate=False)
-                n_succ = run_decoder(pc, n_tests, err, multiproc=False)
-                r = n_succ / n_tests
+                succ_rate = run_decoder(pc, n_tests, err, multiproc=False)
+                r = succ_rate / n_tests
                 if r > best_low_p_succ_rate[i]:
                     best_low_p_succ_rate[i] = r
-        json_object[f"epoch_{epoch}"][f"p_{p}"] = cum_succ / \
-            (n_tests * averaging_samples)
+        json_object[f"epoch_{epoch}"][f"p_{p}"] = cum_succ_rate / averaging_samples
 
         for p, best_wsr in zip(low_p, best_low_p_succ_rate):
             json_object[f"epoch_{epoch}"][f"low_p_best_{p}"] = best_wsr
