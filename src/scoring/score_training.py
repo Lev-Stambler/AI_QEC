@@ -98,8 +98,8 @@ def test(model: scoring_model.ScoringTransformer, device, test_loader):
 ##################################################################
 ##################################################################
 
-def get_save_dir(prefix):
-    return f"data/{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
+def get_save_dir(prefix, epoch):
+    return f"data/{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})_epoch_{epoch}"
 
 
 def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, skip_testing=False):
@@ -128,8 +128,6 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
     test_size = params['n_score_testing_samples']
 
     # TODO: scoring data loader...
-    train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=get_save_dir(data_dir_prefix), raw_dataset_size=train_size), batch_size=int(batch_size),
-                                  shuffle=True, num_workers=workers)
     # test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
     #                              batch_size=int(test_batch_size), shuffle=False, num_workers=workers)
 
@@ -137,6 +135,8 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
     # TODO: increase the batch size so loss is a better metric for saving
     best_loss = float('inf')
     for epoch in range(1, epochs + 1):
+        train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=get_save_dir(data_dir_prefix, epoch), raw_dataset_size=train_size), batch_size=int(batch_size),
+                                  shuffle=True, num_workers=workers)
         loss = train(model, device, train_dataloader, optimizer,
                      epoch, LR=scheduler.get_last_lr()[0], plot_loss=plot_loss)
         print("Stepping with scheduler")
