@@ -11,7 +11,7 @@ import scoring
 from global_params import params
 
 
-def initialize_scoring_model(device, plot_loss=None, skip_testing=False, scoring_model=None):
+def initialize_scoring_model(device, plot_loss=None, skip_testing=False, scoring_model=None, initialize_epoch_start=1):
     def gc(): return scoring.initial_code_sampling.generate_code()
     sample_code, _, _, _ = gc()
     n = sample_code.shape[-1]
@@ -23,7 +23,7 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False, scoring
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device) if scoring_model is None else scoring_model
     scoring.score_training.main_training_loop(
-        "initialization", model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_initial'], plot_loss, skip_testing=skip_testing)
+        "initialization", model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_initial'], plot_loss, skip_testing=skip_testing, epoch_start=initialize_epoch_start)
     return model
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
@@ -51,8 +51,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
                 err = np.ones(n) * p
                 pc, _, _, _ = gen_model.generate_sample(
                     scoring_model, err, mutate=False)
-                succ_rate = run_decoder(pc, n_tests, err, multiproc=False)
-                r = succ_rate / n_tests
+                r = run_decoder(pc, n_tests, err, multiproc=False)
                 if r > best_low_p_succ_rate[i]:
                     best_low_p_succ_rate[i] = r
         json_object[f"epoch_{epoch}"][f"p_{p}"] = cum_succ_rate / averaging_samples
@@ -77,7 +76,7 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
         scoring_model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_genetic'],  plot_loss, skip_testing=skip_testing)
 
 
-def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False, skip_initialization_training=False, skip_eval=False):
+def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
@@ -87,7 +86,7 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
 
     if not skip_initialization_training:
         scoring_model = initialize_scoring_model(
-            device, plot_loss, skip_testing=skip_testing, scoring_model=scoring_model)
+            device, plot_loss, skip_testing=skip_testing, scoring_model=scoring_model, initialize_epoch_start=initialize_epoch_start)
     if not load_saved_generating_model:
         generating_model = gen_model.GeneratingModel(
             device=device,
