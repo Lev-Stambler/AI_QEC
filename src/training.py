@@ -10,18 +10,6 @@ from generating import generating_model as gen_model
 import scoring
 from global_params import params
 
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NpEncoder, self).default(obj)
-
-
-
 def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initialize_epoch_start=1):
     def gc(): return scoring.initial_code_sampling.generate_code()
     sample_code, _, _, _ = gc()
@@ -81,7 +69,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
 
     with open(eval_file, "w") as outfile:
         print("WRITING", json_object)
-        json.dump(json_object, outfile, cls=NpEncoder)
+        json.dump(json_object, outfile, cls=utils.NpEncoder)
     print(f"Done evaluating performance for epoch {epoch}")
 
 

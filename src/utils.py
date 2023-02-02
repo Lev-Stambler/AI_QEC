@@ -1,4 +1,5 @@
 from json import JSONEncoder
+import json
 import random
 import numpy as np
 from global_params import params
@@ -133,3 +134,17 @@ def get_best_scoring_model_path():
 
 def get_eval_path():
     return f"eval/results_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
+
+def get_eval_baseline_path():
+    return f"eval/results_baseline_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
