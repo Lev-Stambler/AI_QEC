@@ -27,7 +27,7 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
 
-def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, p_phys_flips: list[int], low_p: list[int], epoch, n_tests=10_000, averaging_samples=5, eval_file=None):
+def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, p_phys_flips: list[int], low_p: list[int], epoch, n_tests=10_000, averaging_samples=100, eval_file=None):
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
     eval_file = eval_file if eval_file is not None else utils.get_eval_path()
 
@@ -107,9 +107,9 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
                     params['constant_error_rate_upper']]
 
     if not skip_initialization_training:
-        # Get a baseline after 1 epoch
-        if initialize_epoch_start > 1:
-            evaluate_performance(scoring_model, generating_model, p_eval_range, params['eval_p_range'] , -1)
+        # # Get a baseline after 1 epoch
+        # if initialize_epoch_start > 1:
+        #     evaluate_performance(scoring_model, generating_model, p_eval_range, params['eval_p_range'] , -1)
         scoring_model = initialize_scoring_model(
             device, plot_loss, scoring_model=scoring_model, initialize_epoch_start=initialize_epoch_start)
     for genetic_epoch in range(params['n_genetic_epochs']):
