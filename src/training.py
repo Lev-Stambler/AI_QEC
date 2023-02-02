@@ -17,7 +17,7 @@ def initialize_scoring_model(device, plot_loss=None, skip_testing=False, scoring
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
     def ge(): return utils.sample_iid_error(n)
-    N_dec = 6 # CHanged from 6
+    N_dec = 6  # CHanged from 6
     h = 8  # changed from 8
     d_model = 32
     model = score_model.ScoringTransformer(
@@ -38,26 +38,31 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
         json_object = json.load(openfile)
     json_object[f"epoch_{epoch}"] = {}
     best_low_p_succ_rate = [0.0] * len(low_p)
-    for p in p_phys_flips:
+    best_low_p_pcs = [[]] * len(low_p)
+    for _ in range(averaging_samples):
         cum_succ_rate = 0
-        for _ in range(averaging_samples):
+        for p in p_phys_flips:
             err = np.ones(n) * p
             pc, _, _, _ = gen_model.generate_sample(
                 scoring_model, err, mutate=False)
             succ_rate = run_decoder(pc, n_tests, err, multiproc=False)
-            cum_ucc_rate += succ_rate
-            for i in range(len(low_p)):
-                p = low_p[i]
-                err = np.ones(n) * p
-                pc, _, _, _ = gen_model.generate_sample(
-                    scoring_model, err, mutate=False)
-                r = run_decoder(pc, n_tests, err, multiproc=False)
-                if r > best_low_p_succ_rate[i]:
-                    best_low_p_succ_rate[i] = r
-        json_object[f"epoch_{epoch}"][f"p_{p}"] = cum_succ_rate / averaging_samples
+            cum_succ_rate += succ_rate
+        for i in range(len(low_p)):
+            p = low_p[i]
+            err = np.ones(n) * p
+            pc, _, _, _ = gen_model.generate_sample(
+                scoring_model, err, mutate=False)
+            r = run_decoder(pc, n_tests, err, multiproc=False)
+            if r > best_low_p_succ_rate[i]:
+                best_low_p_succ_rate[i] = r
+                best_low_p_pcs = np.fromstring(pc, dtype=int)
 
-        for p, best_wsr in zip(low_p, best_low_p_succ_rate):
+        json_object[f"epoch_{epoch}"][f"p_{p}"] = cum_succ_rate / \
+            averaging_samples
+
+        for p, best_wsr, best_pc in zip(low_p, best_low_p_succ_rate, best_low_p_pcs):
             json_object[f"epoch_{epoch}"][f"low_p_best_{p}"] = best_wsr
+            json_object[f"epoch_{epoch}"][f"low_p_best_{p}_pc"] = best_pc
 
     with open(out_file, "w") as outfile:
         json.dump(json_object, outfile)
@@ -73,7 +78,7 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
     def gc(): return generating_model.generate_sample(scoring_model_copy, err)
 
     scoring.score_training.main_training_loop(f"gen_epoch_{genetic_epoch}",
-        scoring_model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_genetic'],  plot_loss, skip_testing=skip_testing)
+                                              scoring_model, ge, gc, utils.get_best_scoring_model_path(), params['n_score_training_per_epoch_genetic'],  plot_loss, skip_testing=skip_testing)
 
 
 def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_testing=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1):
@@ -98,20 +103,21 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
         pass
 
     p_eval_range = [params['constant_error_rate_lower'],
-               params['constant_error_rate_upper']]
+                    params['constant_error_rate_upper']]
+    eval_file =
     for genetic_epoch in range(params['n_genetic_epochs']):
         if not skip_eval:
             evaluate_performance(scoring_model, generating_model, p_eval_range, [
-                                 0.001, 0.005, 0.01, 0.015], genetic_epoch)
+                                 0.001, 0.005, 0.01, 0.015], genetic_epoch, out_file=utils.get_best_scoring_model_path())
         print(f"Starting epoch #{genetic_epoch + 1}")
         scoring_copied = copy.deepcopy(scoring_model)
         train_score_model_with_generator(genetic_epoch,
-            scoring_model, scoring_copied, generating_model, plot_loss, skip_testing=skip_testing)
+                                         scoring_model, scoring_copied, generating_model, plot_loss, skip_testing=skip_testing)
         del scoring_copied
         # TODO: make p_range better
     if not skip_eval:
         evaluate_performance(scoring_model, generating_model, p_eval_range, [
-                            0.001, 0.005, 0.01, 0.015], genetic_epoch)
+            0.001, 0.005, 0.01, 0.015], genetic_epoch, out_file=utils.get_best_scoring_model_path())
 
     return scoring_model
 

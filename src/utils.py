@@ -130,3 +130,6 @@ class NumpyArrayEncoder(JSONEncoder):
 
 def get_best_scoring_model_path():
     return f"best_scoring/best_model_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
+
+def get_eval_path():
+    return f"eval/results_{params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
