@@ -69,7 +69,7 @@ class CPCCode:
             if edge.v2.id not in self.vertex_edge_adj:
                 self.vertex_edge_adj[edge.v2.id] = []
             self.vertex_edge_adj[edge.v2.id].append(
-                edge)  # TODO: do we want this here?
+                edge) 
 
             vertices[edge.v1.id] = edge.v1
             vertices[edge.v2.id] = edge.v2
@@ -116,6 +116,7 @@ class CPCCode:
                 bit = edge.v1 if edge.v1.data_qubit else edge.v2
 
 				# TODO: document how we expect bit ids to go from 0 to n_bits - 1 and check ids to go from n_bits to n_bits + n_checks - 1
+                # See https://github.com/Lev-Stambler/AI_QEC/issues/1
                 if edge.bit_check:
                     mb[bit.id, to_check_idx(check.id)]
                 elif not edge.bit_check:
@@ -135,6 +136,7 @@ class CPCCode:
 
     def remove_edge(self, edge):
         # TODO: this whole class can be wayyyy more efficient w/ maps instead of lists
+        # See https://github.com/Lev-Stambler/AI_QEC/issues/1
         self.vertex_edge_adj[edge.v1.id].remove(edge)
         if edge.v2.id != edge.v1.id:
             self.vertex_edge_adj[edge.v2.id].remove(edge)
@@ -194,6 +196,7 @@ class CPCCode:
                             virtual_edge = CPCEdge(vertex, v, virtual_edge=True)
                             # TODO: do we need to check whether things work out here as expected?
                             # I.e. use has_equals
+                            # See https://github.com/Lev-Stambler/AI_QEC/issues/1
                             self.remove_edge(e1)
                             self.remove_edge(e2)
                             self.add_edge(virtual_edge)

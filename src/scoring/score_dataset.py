@@ -55,8 +55,6 @@ def decode_random(params, err_bar_cutoff=0.01):
     return s / block_size
 
 # TODO: can we parallelize this dramatically? I think yes
-# TODO: move to utils
-
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
     n = pc.shape[1]
     rho = p_fails

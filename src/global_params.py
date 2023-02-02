@@ -16,11 +16,8 @@ params = {
     'n_score_training_per_epoch_genetic': 500,
     'n_score_epochs': 5,
     # The number of times to run a decoder to generate the error rate
-    # TODO: we want to have this start varying to get stat significant result. Alternatively we set it very high
-    'n_decoder_rounds': 5_000,
+    'n_decoder_rounds': 50_000,
     'p_skip_mutation': 0.8,
     'p_random_mutation': 0.005,
     'eval_p_range': [0.001, 0.005, 0.01, 0.015]
 }
-
-# TODO: add in # optimize steps here...

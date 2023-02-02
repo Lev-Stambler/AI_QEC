@@ -1,4 +1,5 @@
 # TODO: UPDATE ME TO MOST RECENT INSTANTIATION
+# see https://github.com/Lev-Stambler/AI_QEC/issues/1
 from CPC.cpc_code import *
 import unittest
 

@@ -18,6 +18,7 @@ class TestCPCSimplifications(unittest.TestCase):
         bpd = bposd_decoder(classical_code, channel_probs=rho,
                         bp_method="product_sum", osd_method="osd_e",  max_iter=40, osd_order=8)
         # TODO: refactor
+        # see https://github.com/Lev-Stambler/AI_QEC/issues/1
         n_runs = 100
         n_succ = 0
         for i in range(n_runs):
