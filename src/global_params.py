@@ -18,6 +18,6 @@ params = {
     # The number of times to run a decoder to generate the error rate
     'n_decoder_rounds': 100_000,
     'p_skip_mutation': 0.8,
-    'p_random_mutation': 0.005,
+    'p_random_mutation': 0.0005,
     'eval_p_range': [0.001, 0.005, 0.01, 0.015]
 }
