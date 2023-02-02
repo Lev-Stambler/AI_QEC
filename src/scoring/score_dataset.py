@@ -18,7 +18,6 @@ def gen_random_ldpc(n, k, deg_row):
     x[:, :deg_row - 1] = 1
     perm = np.stack([np.random.permutation(k) for _ in range((n - k))])
     x = np.take(x, perm)
-    # TODO: above is wrong use first approach
     rand_ldpc_H = np.concatenate((iden_left, x), axis=1)
     G = utils.HtoG(rand_ldpc_H)
     return rand_ldpc_H.astype(np.int16), G.astype(np.int16)
@@ -57,29 +56,8 @@ def decode_random(params, err_bar_cutoff=0.01):
 
 # TODO: can we parallelize this dramatically? I think yes
 # TODO: move to utils
-# Hmmm.... this is not working. Alternatively we just have the dataloader create the data upfront...
-
-
-# TODO: we only support a constant error rate here
-def run_decoder_bp_only(pc, n_runs, err_rate):
-    output_dict = {}
-    classical_decode_sim(
-        pc,
-        err_rate,
-        target_runs=n_runs,
-        max_iter=60,
-        seed=100,
-        bp_method='ms',
-        ms_scaling_factor=1,
-        # output_file="classical_bp_decode_sim_output.json",
-        output_dict=output_dict
-    )
-    print(output_dict)
-    return output_dict['bp_success_count'] / output_dict['run_count']
-
 
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
-    # return run_decoder_bp_only(pc, n_runs, p_fails[0])
     n = pc.shape[1]
     rho = p_fails
     # if multiproc:

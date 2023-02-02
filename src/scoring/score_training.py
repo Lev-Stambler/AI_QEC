@@ -127,10 +127,6 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
     test_batch_size = 1
     test_size = params['n_score_testing_samples']
 
-    # TODO: scoring data loader...
-    # test_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, dataset_size=test_size),
-    #                              batch_size=int(test_batch_size), shuffle=False, num_workers=workers)
-
     #################################
     # TODO: increase the batch size so loss is a better metric for saving
     best_loss = float('inf')
@@ -142,7 +138,6 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
         print("Stepping with scheduler")
         scheduler.step()
         print("Done stepping")
-        # TODO: reenable
         if loss < best_loss:
             best_loss = loss
             torch.save(model, save_path)

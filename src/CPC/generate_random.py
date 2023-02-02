@@ -8,9 +8,9 @@ from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 def random_cpc() -> CPCCode:
     """
     TODO: I think "relaxing" the degree requirement would make life **a lot**
-    TODO: easier when generalizing the search space. Maybe we have like a "range"
-    TODO: and uniformly sample from there. Selection for lower degree or not can be built into
-    TODO: the error simulator via Stim
+    easier when generalizing the search space. Maybe we have like a "range"
+    and uniformly sample from there. Selection for lower degree or not can be built into
+    the error simulator via Stim
     """
     n_bits = params['n_data_qubits']
     n_checks = params['n_check_qubits']

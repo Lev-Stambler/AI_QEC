@@ -39,10 +39,8 @@ class GeneratingModel():
         # physical_error_rates.requires_grad_(False)
         goal_tensor = torch.tensor([[1.0]]).to(self.device).type(utils.get_numb_type())
 
-        # TODO: starting?
         for _ in range(num_steps):
             # Optimize towards a 0 error rate
-            # TODO: maybe doing 0 here makes things too aggressive... lets see
             loss = mse(scoring_model(bit_adj,
                 phase_adj, check_adj, physical_error_rates), goal_tensor)
             loss.backward()
@@ -67,8 +65,8 @@ class GeneratingModel():
 
     def mutate(self, bit_adj, phase_adj, check_adj):
         """
-        TODO: consider this method... like we can do random "mutations" to the output
-        TODO: code. For now, lets skip this and keep it simple...
+        Perform random "mutations" by randomly flipping bits in the parity check matrices
+        according to `self.p_random_mutation`
         """
         p_edge_flip = self.p_random_mutation
         for data_bit in range(bit_adj.shape[0]):

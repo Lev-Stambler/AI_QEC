@@ -77,7 +77,6 @@ class TestCPCSimplifications(unittest.TestCase):
 
         self.assertCountEqual([], c.edges)
 
-# # TODO::: hmmmm,, want to make sure we don't have anything extraneous with the rules...
     def test_rule_4(self):
         check_1 = CPCVertex(0, check_qubit=True)
         c = CPCCode([
