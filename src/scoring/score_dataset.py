@@ -50,6 +50,7 @@ def decode_random(params, err_bar_cutoff=0.01):
             q = 1 - p
             bp_frame_error_rate_eb = np.sqrt(q*p/n_runs)
             # print(bp_frame_error_rate_eb, p,err_bar_cutoff)
+            # print(bp_frame_error_rate_eb, p, err_bar_cutoff)
             if bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
                 return p
     return s / block_size
