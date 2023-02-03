@@ -1,8 +1,1 @@
-{
-  "random_cpc": {
-    "error_rate_0.001": 0.99807,
-    "error_rate_0.005": 0.99795,
-    "error_rate_0.01": 0.99795,
-    "error_rate_0.015": 0.99794
-  }
-}
+{"random_cpc": {"error_rate_0.001": 0.998, "error_rate_0.001_pc": 0.998, "error_rate_0.005": 0.99804, "error_rate_0.005_pc": 0.99804, "error_rate_0.01": 0.99781, "error_rate_0.01_pc": 0.99781, "error_rate_0.015": 0.99786, "error_rate_0.015_pc": 0.99786}}

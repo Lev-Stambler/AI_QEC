@@ -141,9 +141,9 @@ def get_eval_baseline_path():
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
-            return int(obj)
+            return int(obj * 1_000)
         if isinstance(obj, np.floating):
-            return float(obj)
+            return float(obj * 1_000)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
