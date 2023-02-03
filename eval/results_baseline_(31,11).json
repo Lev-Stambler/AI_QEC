@@ -1,1 +1,1 @@
-{"random_cpc": {"error_rate_0.001": 0.997717, "error_rate_0.001_pc": 0.997717, "error_rate_0.005": 0.997731, "error_rate_0.005_pc": 0.997731, "error_rate_0.01": 0.997694, "error_rate_0.01_pc": 0.997694, "error_rate_0.02": 0.997692, "error_rate_0.02_pc": 0.997692}}
+{"random_cpc": {"error_rate_0.001": 0.9986, "error_rate_0.001_pc": 0.9986, "error_rate_0.005": 0.9557, "error_rate_0.005_pc": 0.9557, "error_rate_0.01": 0.8533, "error_rate_0.01_pc": 0.8533, "error_rate_0.02": 0.6096, "error_rate_0.02_pc": 0.6096}}
