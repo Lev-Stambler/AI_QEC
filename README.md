@@ -21,8 +21,13 @@ This entire process can be repeated for a few epochs like so:
 
 Thus, we can have a few epochs of `looking for imporvements` in potential CPC codes.
 
-## Moral Intuition
+### Moral Intuition
 What is the reasing behing this project? Recent results have shown that transformers are able to "reason" about their input in predicting an output.
 Thus, the hope is that the scoring model can learn what makes a code "good" when attempting to estimate the word error rates. Then, we take a greedy approach.
 Essentially, the algorithm optimize a codes based off of structures the scoring model has already learned. The algorithm then introduces mutations with the hopes of getting the scoring
 model to learn further structures which create good codes. 
+
+## Using the repository
+### Installation
+First, install [aff3ct](https://github.com/aff3ct/aff3ct). aff3ct is used to simulate the different codes.
+Please use their documentation for up to date installation instructions.
