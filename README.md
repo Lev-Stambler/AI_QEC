@@ -31,3 +31,8 @@ model to learn further structures which create good codes.
 ### Installation
 First, install [aff3ct](https://github.com/aff3ct/aff3ct). aff3ct is used to simulate the different codes.
 Please use their documentation for up to date installation instructions.
+
+Then, install Stim
+```
+pip install stim
+```

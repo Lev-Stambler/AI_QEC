@@ -130,13 +130,13 @@ class NumpyArrayEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 def get_best_scoring_model_path():
-    return f"best_scoring/best_model_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
+    return f"best_scoring/best_model_{params['params_prefix']}_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})"
 
 def get_eval_path():
-    return f"eval/results_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
+    return f"eval/results_{params['params_prefix']}_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
 
 def get_eval_baseline_path():
-    return f"eval/results_baseline_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
+    return f"eval/results_baseline_{params['params_prefix']}_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']}).json"
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):

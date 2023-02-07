@@ -63,7 +63,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
 
 ##################################################################
 def get_save_dir(prefix, epoch):
-    return f"data/{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})_epoch_{epoch}"
+    return f"data/{params['params_prefix']}_{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})_epoch_{epoch}"
 
 
 def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, epoch_start=1):
@@ -92,7 +92,7 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
     best_loss = float('inf')
     for epoch in range(epoch_start, epochs + 1):
         train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=get_save_dir(data_dir_prefix, epoch), raw_dataset_size=train_size), batch_size=int(batch_size),
-                                  shuffle=True, num_workers=workers)
+                                      shuffle=True, num_workers=workers)
         loss = train(model, device, train_dataloader, optimizer,
                      epoch, LR=scheduler.get_last_lr()[0], plot_loss=plot_loss)
         print("Stepping with scheduler")
