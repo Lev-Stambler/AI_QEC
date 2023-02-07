@@ -53,7 +53,7 @@ def parse_out_get_fer(path=_TMP_OUT_PATH):
 # TODO: support parameter setting from a different file/ object
 # TODO: its worth trying to write out n_frame_err but the lower the error rate, the smaller our std bars as is...
 # That being said, working something exp out would be nices
-def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_bar_cutoff=0.01):
+def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=50_000, err_bar_cutoff=0.01):
     _np_to_alist(H)
 
     channel_type = "BSC"
@@ -69,8 +69,9 @@ def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_b
     # for BSC, OOK modulation is required. See https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/channel/channel.html#chn-chn-type
     run_sim_cmd = f"aff3ct --sim-cde-type LDPC --chn-type {channel_type} --enc-cw-size {n} --enc-info-bits {k_pc} " \
         + f"--enc-type LDPC_H --dec-h-path {_TMP_ALIST_PATH} --dec-type {dec_type} --dec-implem {dec_implem} " + \
-        f"--dec-ite {dec_bp_iterations} --sim-noise-type {sim_noise_type} --sim-noise-range '{','.join([str(p) for p in err_distr])}' --mdm-type OOK" + \
+        f"--dec-ite {dec_bp_iterations} --sim-noise-type {sim_noise_type} --sim-noise-range '{','.join([str(p) for p in err_distr])}' --mdm-type OOK " + \
         f"--mnt-max-fe {n_frame_errors} > {_TMP_OUT_PATH}"
 
     os.system(run_sim_cmd)
-    return parse_out_get_fer()
+    print(run_sim_cmd)
+    return 1 - parse_out_get_fer()
