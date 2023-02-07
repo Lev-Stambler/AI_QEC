@@ -53,7 +53,7 @@ def parse_out_get_fer(path=_TMP_OUT_PATH):
 # TODO: support parameter setting from a different file/ object
 # TODO: its worth trying to write out n_frame_err but the lower the error rate, the smaller our std bars as is...
 # That being said, working something exp out would be nices
-def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=50_000, err_bar_cutoff=0.01):
+def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_bar_cutoff=0.01):
     _np_to_alist(H)
 
     channel_type = "BSC"
