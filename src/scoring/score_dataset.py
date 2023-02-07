@@ -1,5 +1,6 @@
 from typing import Callable
 from ldpc.bp_decode_sim import classical_decode_sim
+from aff3ct_wrapper import aff3ct_simulate
 import math
 import json
 import os
@@ -56,7 +57,10 @@ def decode_random(params, err_bar_cutoff=0.01):
 
 # TODO: can we parallelize this dramatically? I think yes
 # see https://github.com/Lev-Stambler/AI_QEC/issues/2
+
+
 def run_decoder(pc, n_runs, p_fails, multiproc=False):
+    return aff3ct_simulate.get_wer(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
     # if multiproc:
