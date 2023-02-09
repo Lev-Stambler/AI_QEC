@@ -50,7 +50,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
             err = np.ones(n) * p
             pc, _, _, _ = gen_model.generate_sample(
                 scoring_model, err, mutate=False)
-            r = run_decoder(pc, n_tests, err, multiproc=False)
+            r = run_decoder(pc, err, multiproc=False)
             if r > best_low_p_succ_rate[i]:
                 best_low_p_succ_rate[i] = r
                 best_low_p_pcs = pc

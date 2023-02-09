@@ -5,7 +5,7 @@ from global_params import params
 from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 
 
-def random_cpc() -> CPCCode:
+def random_cpc():
     n_bits = params['n_data_qubits']
     n_checks = params['n_check_qubits']
     deg_phase = random.randint(params['deg_phase_lower'], params['deg_phase_upper'])
