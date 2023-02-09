@@ -73,5 +73,4 @@ def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_b
         f"--mnt-max-fe {n_frame_errors} > {_TMP_OUT_PATH}"
 
     os.system(run_sim_cmd)
-    print(run_sim_cmd)
     return 1 - parse_out_get_fer()
