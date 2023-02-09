@@ -59,7 +59,7 @@ def decode_random(params, err_bar_cutoff=0.01):
 # see https://github.com/Lev-Stambler/AI_QEC/issues/2
 
 
-def run_decoder(pc, n_runs, p_fails, multiproc=False):
+def run_decoder(pc, p_fails, multiproc=False):
     return aff3ct_simulate.get_wer(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
@@ -128,7 +128,7 @@ class ScoringDataset(torch.utils.data.Dataset):
                 d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
-        return run_decoder(code, self.item_sample_size, error_prob)
+        return run_decoder(code, error_prob)
 
     def generate_error_file(self, file_name):
         e = self.error_prob()
