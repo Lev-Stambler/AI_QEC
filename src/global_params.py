@@ -8,6 +8,7 @@ params = {
     'deg_phase_upper': 6,
     'deg_check_to_check_upper': 6,
     # lower bounding here is tricky as we need stat sig
+    # TODO: turn into a range instead of 2 variables
     'constant_error_rate_lower': 0.002,
     'constant_error_rate_upper': 0.002,
     'n_genetic_epochs': 10,
