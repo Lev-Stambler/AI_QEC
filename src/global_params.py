@@ -13,13 +13,13 @@ params = {
     'n_genetic_epochs': 10,
     'n_score_testing_samples': 50,
     'n_score_training_per_epoch_initial': 1_000,  # 10_000,
-    'n_score_training_per_epoch_genetic': 3_000,
+    'n_score_training_per_epoch_genetic': 6_000,
     'n_score_epochs_initial': 5,
     'n_score_epochs_genetic': 2,
     # The number of times to run a decoder to generate the error rate
     'n_decoder_rounds': 100_000,
-    'p_skip_mutation': 0.3,
-    'p_random_mutation_range': [0.005, 0.05],
+    'p_skip_mutation': 0.35,
+    'p_random_mutation_range': [0.005, 0.015],
     'eval_p_range': [0.001, 0.005],
     'params_prefix': 'bsc_iid_noise',
     ########## RL parameters ####################
