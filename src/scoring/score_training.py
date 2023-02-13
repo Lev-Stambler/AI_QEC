@@ -66,7 +66,10 @@ def get_save_dir(prefix, epoch):
     return f"data/{params['params_prefix']}_{prefix}_code_({params['n_data_qubits']},{params['n_data_qubits'] - params['n_check_qubits']})_epoch_{epoch}"
 
 
-def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sample, save_path, n_score_training_samples, plot_loss=None, epoch_start=1):
+def main_training_loop(data_dir_prefix,
+                       model, error_prob_sample, random_code_sample, save_path,
+                       n_score_training_samples, epochs: int, plot_loss=None,
+                       epoch_start=1):
     """
     Train the scoring model.
     Here we assume that the random_code_sample function always returns the same parity check
@@ -75,7 +78,6 @@ def main_training_loop(data_dir_prefix, model, error_prob_sample, random_code_sa
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #################################
     lr = 1e-6
-    epochs = params['n_score_epochs']
     batch_size = 1
     # Use a new random code after 32 runs, we do not want this to be too high as we are
     # trying to learn a **general** decoder
