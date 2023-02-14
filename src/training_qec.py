@@ -90,7 +90,7 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
                                               )
 
 
-def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1):
+def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1, genetic_epoch_start=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
@@ -114,7 +114,7 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
         #     evaluate_performance(scoring_model, generating_model, p_eval_range, params['eval_p_range'] , -1)
         scoring_model = initialize_scoring_model(
             device, plot_loss, scoring_model=scoring_model, initialize_epoch_start=initialize_epoch_start)
-    for genetic_epoch in range(params['n_genetic_epochs']):
+    for genetic_epoch in range(genetic_epoch_start, params['n_genetic_epochs']):
         if not skip_eval:
             evaluate_performance(scoring_model, generating_model, p_eval_range,
                                  genetic_epoch, True and initialize_epoch_start == 1)
