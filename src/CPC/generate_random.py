@@ -5,15 +5,16 @@ from global_params import params
 from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 
 
-def random_cpc():
-    n_bits = params['n_data_qubits']
-    n_checks = params['n_check_qubits']
-    deg_phase = random.randint(params['deg_phase_lower'], params['deg_phase_upper'])
+def random_cpc(n_bits=params['n_data_qubits'], n_checks=params['n_check_qubits']):
+    deg_phase = random.randint(
+        params['deg_phase_lower'], params['deg_phase_upper'])
     deg_bit = random.randint(params['deg_bit_lower'], params['deg_bit_upper'])
-    deg_cc = random.randint(params['deg_check_to_check_lower'], params['deg_check_to_check_upper'])
+    deg_cc = random.randint(
+        params['deg_check_to_check_lower'], params['deg_check_to_check_upper'])
 
     bit_vertices = [CPCVertex(i, data_qubit=True) for i in range(n_bits)]
-    check_vertices = [CPCVertex(i + n_bits, check_qubit=True) for i in range(n_checks)]
+    check_vertices = [CPCVertex(i + n_bits, check_qubit=True)
+                      for i in range(n_checks)]
     edges = []
     bit_adj = np.zeros((n_bits, n_checks), dtype=np.int16)
     phase_adj = np.zeros((n_bits, n_checks), dtype=np.int16)
@@ -37,5 +38,10 @@ def random_cpc():
             check_check_adj[c1, c2] = 1
             check_check_adj[c2, c1] = 1
 
-    return CPCCode(n_bits, n_checks, edges).get_classical_code(), bit_adj, phase_adj, check_check_adj
-        
+    phase_check = (((bit_adj.T @ phase_adj) %
+                       2) + check_check_adj) % 2
+    pc = np.concatenate([phase_adj.T, phase_check,
+                         bit_adj.T, np.eye(n_checks)], axis=-1)
+
+    return pc, bit_adj, phase_adj, check_check_adj
+    # return CPCCode(n_bits, n_checks, edges).get_classical_code(), bit_adj, phase_adj, check_check_adj

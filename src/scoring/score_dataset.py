@@ -60,7 +60,7 @@ def decode_random(params, err_bar_cutoff=0.01):
 
 
 def run_decoder(pc, p_fails, multiproc=False):
-    return aff3ct_simulate.get_wer(pc, p_fails)
+    return aff3ct_simulate.get_wsr(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
     # if multiproc:

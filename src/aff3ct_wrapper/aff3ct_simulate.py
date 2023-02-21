@@ -1,7 +1,10 @@
+import sys
+import os
+
 import numpy as np
 import math
 import numpy.typing as npt
-import os
+from CPC import generate_random
 
 _TMP_ALIST_PATH = "build/tmp_code.alist"
 _TMP_OUT_PATH = "build/tmp_out.txt"
@@ -32,6 +35,7 @@ def _np_to_alist(H: npt.NDArray, alist_path=_TMP_ALIST_PATH):
         ' '.join([str(int(p)) for p in pc_degs]) + "\n" + \
         '\n'.join([row_to_alist(H[:, i], max_bit_deg) for i in range(n_bits)]) + "\n" + \
         '\n'.join([row_to_alist(H[i], max_pc_deg) for i in range(n_pc)]) + "\n"
+    
     f = open(alist_path, "w")
     f.write(alist)
     f.close()
@@ -53,7 +57,7 @@ def parse_out_get_fer(path=_TMP_OUT_PATH):
 # TODO: support parameter setting from a different file/ object
 # TODO: its worth trying to write out n_frame_err but the lower the error rate, the smaller our std bars as is...
 # That being said, working something exp out would be nices
-def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_bar_cutoff=0.01):
+def get_wsr(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=10_000, err_bar_cutoff=0.01):
     _np_to_alist(H)
 
     channel_type = "BSC"

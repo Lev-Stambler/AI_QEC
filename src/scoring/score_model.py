@@ -56,6 +56,7 @@ class ScoringTransformer(nn.Module):
                        2) + check_adj) % 2
         pc = torch.concat([phase_adj.transpose(-2, -1), phase_check,
                           bit_adj.transpose(-1, -2), torch.eye(self.n_checks).unsqueeze(0).repeat(bit_adj.shape[0], 1, 1).to(self.device)], axis=-1)
+        # TODO:!!!!! What is this repeat????
         # Modified
         emb = torch.cat(
             [pc.flatten(start_dim=1), error_probabilities], -1).unsqueeze(-1)
