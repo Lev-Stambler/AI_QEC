@@ -6,11 +6,6 @@ from CPC.cpc_code import CPCCode, CPCVertex, CPCEdge
 
 
 def random_cpc(n_bits=params['n_data_qubits'], n_checks=params['n_check_qubits']):
-    deg_phase = random.randint(
-        params['deg_phase_lower'], params['deg_phase_upper'])
-    deg_bit = random.randint(params['deg_bit_lower'], params['deg_bit_upper'])
-    deg_cc = random.randint(
-        params['deg_check_to_check_lower'], params['deg_check_to_check_upper'])
 
     bit_vertices = [CPCVertex(i, data_qubit=True) for i in range(n_bits)]
     check_vertices = [CPCVertex(i + n_bits, check_qubit=True)
@@ -21,6 +16,13 @@ def random_cpc(n_bits=params['n_data_qubits'], n_checks=params['n_check_qubits']
     check_check_adj = np.zeros((n_checks, n_checks), dtype=np.int16)
 
     for i, bit_vert in enumerate(bit_vertices):
+        # For each PC, generate the degrees
+        deg_phase = random.randint(
+            params['deg_phase_lower'], params['deg_phase_upper'])
+        deg_bit = random.randint(params['deg_bit_lower'], params['deg_bit_upper'])
+        deg_cc = random.randint(
+            params['deg_check_to_check_lower'], params['deg_check_to_check_upper'])
+
         check_idx = np.random.permutation(n_checks)[:deg_phase]
         for c in check_idx:
             edges.append(CPCEdge(bit_vert, check_vertices[c], bit_check=True))

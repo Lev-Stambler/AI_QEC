@@ -58,6 +58,10 @@ def decode_random(params, err_bar_cutoff=0.01):
 # TODO: can we parallelize this dramatically? I think yes
 # see https://github.com/Lev-Stambler/AI_QEC/issues/2
 
+def run_decoder_bp_osd(pc, p_fails, n_runs):
+    n = pc.shape[1]
+    rho = p_fails
+    return decode_random((n, rho, pc, n_runs))
 
 def run_decoder(pc, p_fails, multiproc=False):
     return aff3ct_simulate.get_wsr(pc, p_fails)
