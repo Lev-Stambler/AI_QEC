@@ -1,0 +1,3 @@
+[submodule "ldpc"]
+	path = ldpc
+	url = git@github.com:Lev-Stambler/ldpc.git
