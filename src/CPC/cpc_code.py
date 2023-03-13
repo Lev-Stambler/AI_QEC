@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 import numpy.typing as npt
 
 
@@ -278,6 +279,16 @@ class CPCCode:
                             # self.vertex_edge_adj[v1].append(virtual_edge)
 
         return False
+
+    def save(self, filename: str):
+        with open(f'{filename}', 'wb') as file:
+            pickle.dump(self, file)
+
+    def load(filename: str):
+        n: CPCCode = None
+        with open(filename, 'rb') as file:
+            n = pickle.load(file)
+        return n
 
 
 def gen_cpc_from_classical_codes(H_x: npt.NDArray, H_z: npt.NDArray) -> CPCCode:

@@ -1,6 +1,6 @@
 from typing import Callable
 from ldpc.bp_decode_sim import classical_decode_sim
-from aff3ct_wrapper import aff3ct_simulate
+from ldpc_classical.aff3ct_wrapper import aff3ct_simulate
 import math
 import json
 import os
@@ -61,7 +61,8 @@ def decode_random(params, err_bar_cutoff=0.01):
 def run_decoder_bp_osd(pc, p_fails, n_runs):
     n = pc.shape[1]
     rho = p_fails
-    return decode_random((n, rho, pc, n_runs))
+    # TODO: use the built in test runner for faster
+    return 1 - decode_random((n, rho, pc, n_runs))
 
 def run_decoder(pc, p_fails, multiproc=False):
     return aff3ct_simulate.get_wsr(pc, p_fails)
