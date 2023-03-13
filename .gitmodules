@@ -1,0 +1,3 @@
+[submodule "lib/ProtographLDPC"]
+	path = lib/ProtographLDPC
+	url = https://github.com/shubhamchandak94/ProtographLDPC/
