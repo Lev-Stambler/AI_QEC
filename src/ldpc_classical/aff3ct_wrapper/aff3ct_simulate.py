@@ -6,8 +6,8 @@ import math
 import numpy.typing as npt
 from CPC import generate_random
 
-_TMP_ALIST_PATH = "build/tmp_code.alist"
-_TMP_OUT_PATH = "build/tmp_out.txt"
+_TMP_ALIST_PATH = "/tmp/aff3ct_sim_tmp_code.alist"
+_TMP_OUT_PATH = "/tmp/aff3ct_sim_tmp_out.txt"
 
 
 def _np_to_alist(H: npt.NDArray, alist_path=_TMP_ALIST_PATH):
@@ -35,10 +35,11 @@ def _np_to_alist(H: npt.NDArray, alist_path=_TMP_ALIST_PATH):
         ' '.join([str(int(p)) for p in pc_degs]) + "\n" + \
         '\n'.join([row_to_alist(H[:, i], max_bit_deg) for i in range(n_bits)]) + "\n" + \
         '\n'.join([row_to_alist(H[i], max_pc_deg) for i in range(n_pc)]) + "\n"
-    
+
     f = open(alist_path, "w")
     f.write(alist)
     f.close()
+
 
 def parse_out_get_fer(path=_TMP_OUT_PATH):
     f = open(path)
@@ -57,7 +58,8 @@ def parse_out_get_fer(path=_TMP_OUT_PATH):
 # TODO: support parameter setting from a different file/ object
 # TODO: its worth trying to write out n_frame_err but the lower the error rate, the smaller our std bars as is...
 # That being said, working something exp out would be nices
-def get_wsr(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=1_000, err_bar_cutoff=0.01): # TODO: param n_frame_errors...
+# TODO: param n_frame_errors...
+def get_wsr(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=1_000, err_bar_cutoff=0.01):
     _np_to_alist(H)
 
     channel_type = "BSC"
@@ -69,7 +71,7 @@ def get_wsr(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=1_000, err_ba
     # Maybe we want to use
     dec_implem = "AMS"  # hmm... use MS (min sum)
     dec_bp_iterations = 10  # Again, we are using the default here
-    sim_noise_type = "EP" # Event probability
+    sim_noise_type = "EP"  # Event probability
     # for BSC, OOK modulation is required. See https://aff3ct.readthedocs.io/en/latest/user/simulation/parameters/channel/channel.html#chn-chn-type
     run_sim_cmd = f"aff3ct --sim-cde-type LDPC --chn-type {channel_type} --enc-cw-size {n} --enc-info-bits {k_pc} " \
         + f"--enc-type LDPC_H --dec-h-path {_TMP_ALIST_PATH} --dec-type {dec_type} --dec-implem {dec_implem} " + \
@@ -78,3 +80,7 @@ def get_wsr(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=1_000, err_ba
 
     os.system(run_sim_cmd)
     return 1 - parse_out_get_fer()
+
+
+def get_wer(H: npt.NDArray, err_distr: npt.NDArray, n_frame_errors=1_000, err_bar_cutoff=0.01):
+    return 1 - get_wsr(H, err_distr, n_frame_errors, err_bar_cutoff)

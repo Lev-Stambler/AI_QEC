@@ -7,6 +7,8 @@ class _BitType():
         self.BIT_FLIP_DATA = 1
         self.PHASE_FLIP_DATA = 2
         self.PHASE_FLIP_PC = 3
+
+
 BitType = _BitType()
 
 
@@ -37,15 +39,17 @@ class CPCEdge:
     def __init__(self, v1: CPCVertex, v2: CPCVertex, bit_check=True, virtual_edge=False) -> None:
         self.v1 = v1
         self.v2 = v2
-        if not bit_check and virtual_edge:
-            raise "Cannot have a virtual edge and opposing Pauli"
+        if bit_check and virtual_edge:
+            raise ValueError("Cannot have a virtual edge and a bit check")
         if (v1.check_qubit and v2.data_qubit and virtual_edge) or (v1.data_qubit and v2.check_qubit and virtual_edge):
-            raise "Cannot have a virtual edge between check and data qubit"
-        if not bit_check and (v1.check_qubit and v2.check_qubit):
-            raise "Cannot have same Paulis across check qubits"
+            raise ValueError(
+                "Cannot have a virtual edge between check and data qubit")
+        if bit_check and (v1.check_qubit and v2.check_qubit):
+            raise ValueError("Cannot have same Paulis across check qubits")
         if v1.data_qubit and v2.data_qubit:
-            raise "Cannot have edge between data qubits"
+            raise ValueError("Cannot have edge between data qubits")
 
+        self.check_to_check = v1.check_qubit and v2.check_qubit
         self.bit_check = bit_check
         self.virtual_edge = virtual_edge
 
@@ -150,15 +154,15 @@ class CPCCode:
             checks_to_idx[check.id] = i
 
         for i, bit in enumerate(databits):
-            bit_types[2 * i]= BitType.BIT_FLIP_DATA
-            bit_types[2 * i + 1]= BitType.PHASE_FLIP_DATA
+            bit_types[2 * i] = BitType.BIT_FLIP_DATA
+            bit_types[2 * i + 1] = BitType.PHASE_FLIP_DATA
             for edge in self.vertex_edge_adj[bit.id]:
                 edge: CPCEdge = edge
                 if edge.virtual_edge:
                     raise "Virtual edge on databit should be impossible"
                 opp_check: CPCVertex = edge.get_opposing_vertex(bit.id)
                 if edge.bit_check:
-                    assert(opp_check.check_qubit, "Expected check qubit")
+                    assert (opp_check.check_qubit, "Expected check qubit")
                     check_idx = checks_to_idx[opp_check.id]
                     pc_mat[check_idx, 2 * i] = 1
                 elif not edge.bit_check:
@@ -210,10 +214,10 @@ class CPCCode:
                             virtual_edge = None
                             if e1.bit_check and not e2.bit_check:
                                 virtual_edge = CPCEdge(
-                                    vertex, vertex, virtual_edge=True)
+                                    vertex, vertex, bit_check=False, virtual_edge=True)
                             elif not e1.bit_check and e2.bit_check:
                                 virtual_edge = CPCEdge(
-                                    vertex, vertex, virtual_edge=True)
+                                    vertex, vertex, bit_check=False, virtual_edge=True)
                             if virtual_edge is not None and not self.has_edge(virtual_edge):
                                 self.add_edge(virtual_edge)
                                 return True
@@ -223,9 +227,9 @@ class CPCCode:
                             self.remove_edge(e2)
                             return True
                         # Rule 5 part 1
-                        elif e1.v2.id == vertex.id and e1.virtual_edge and e2.bit_check and not e2.virtual_edge:
+                        elif e1.v2.id == vertex.id and e1.virtual_edge and not e2.bit_check and not e2.virtual_edge:
                             virtual_edge = CPCEdge(
-                                vertex, v, virtual_edge=True)
+                                vertex, v, bit_check=False, virtual_edge=True)
                             # TODO: do we need to check whether things work out here as expected?
                             # I.e. use has_equals
                             # See https://github.com/Lev-Stambler/AI_QEC/issues/1
@@ -234,11 +238,11 @@ class CPCCode:
                             self.add_edge(virtual_edge)
                             return True
                         # Rule 5 part 2
-                        elif e2.v2.id == vertex.id and e2.virtual_edge and e1.bit_check and not e1.virtual_edge:
+                        elif e2.v2.id == vertex.id and e2.virtual_edge and not e1.bit_check and not e1.virtual_edge:
                             self.remove_edge(e1)
                             self.remove_edge(e2)
                             virtual_edge = CPCEdge(
-                                vertex, v, virtual_edge=True)
+                                vertex, v, bit_check=False, virtual_edge=True)
                             self.add_edge(virtual_edge)
                             return True
                         # Rule 6
@@ -249,7 +253,7 @@ class CPCCode:
                         ):
                             self.remove_edge(e1)
                             self.remove_edge(e2)
-                            self.add_edge(CPCEdge(vertex, v, bit_check=True))
+                            self.add_edge(CPCEdge(vertex, v, bit_check=False))
                             return True
 
         elif vertex.data_qubit:
@@ -264,10 +268,10 @@ class CPCCode:
                         virtual_edge = None
                         if e1.bit_check and not e2.bit_check:
                             virtual_edge = CPCEdge(
-                                v1, v2, bit_check=True, virtual_edge=True)
+                                v1, v2, bit_check=False, virtual_edge=True)
                         elif not e1.bit_check and e2.bit_check:
                             virtual_edge = CPCEdge(
-                                v2, v1, bit_check=True, virtual_edge=True)
+                                v2, v1, bit_check=False, virtual_edge=True)
                         if virtual_edge is not None and not self.has_edge(virtual_edge):
                             self.add_edge(virtual_edge)
                             return True
@@ -292,7 +296,7 @@ def gen_cpc_from_classical_codes(H_x: npt.NDArray, H_z: npt.NDArray) -> CPCCode:
     for check_x in range(H_x.shape[0]):
         for qubit in range(H_x.shape[1]):
             if H_x[check_x, qubit]:
-                edges.append(CPCEdge(checks_x[check_x], data_qubits[qubit]))
+                edges.append(CPCEdge(checks_x[check_x], data_qubits[qubit], bit_check=True))
 
     for check_z in range(H_z.shape[0]):
         for qubit in range(H_z.shape[1]):
