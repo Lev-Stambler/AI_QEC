@@ -2,6 +2,14 @@ import numpy as np
 import numpy.typing as npt
 
 
+class _BitType():
+    def __init__(self) -> None:
+        self.BIT_FLIP_DATA = 1
+        self.PHASE_FLIP_DATA = 2
+        self.PHASE_FLIP_PC = 3
+BitType = _BitType()
+
+
 class CPCVertex:
     def __init__(self, id: int, data_qubit=False, check_qubit=False) -> None:
         if data_qubit and check_qubit:
@@ -50,11 +58,12 @@ class CPCEdge:
     def __ne__(self, __o) -> bool:
         return not self.__eq__(__o)
 
+    def get_opposing_vertex(self, vertex_id) -> CPCVertex:
+        return self.v2 if self.v1.id == vertex_id else self.v1
+
 
 class CPCCode:
-    def __init__(self, n_bits: int, n_checks: int, edges: list[CPCEdge], auto_virtual_edges=False) -> None:
-        self.n_bits = n_bits
-        self.n_checks = n_checks
+    def __init__(self, edges: list[CPCEdge], auto_virtual_edges=False) -> None:
         self.edges = edges
 
         self.vertex_edge_adj = {}
@@ -66,15 +75,16 @@ class CPCCode:
                 self.vertex_edge_adj[edge.v1.id] = []
             self.vertex_edge_adj[edge.v1.id].append(edge)
 
-            if edge.v2.id not in self.vertex_edge_adj:
-                self.vertex_edge_adj[edge.v2.id] = []
-            self.vertex_edge_adj[edge.v2.id].append(
-                edge) 
+            if edge.v1.id != edge.v2.id:
+                if edge.v2.id not in self.vertex_edge_adj:
+                    self.vertex_edge_adj[edge.v2.id] = []
+                self.vertex_edge_adj[edge.v2.id].append(
+                    edge)
 
             vertices[edge.v1.id] = edge.v1
             vertices[edge.v2.id] = edge.v2
 
-        self.vertices = vertices.values()
+        self.vertices: list[CPCVertex] = list(vertices.values())
 
         if auto_virtual_edges:
             print("Simplifying the input code")
@@ -84,55 +94,17 @@ class CPCCode:
         """
         Simply according to virtual edge rules
         """
-        all_simplified = False
-        n_simp = 0
-        while not all_simplified:
-            all_simplified = True
+        def simp_round():
             for vert in self.vertices:
                 simped = self.apply_simplify_rule(vert)
                 if simped:
                     # Start the while loop again
-                    all_simplified = False
-                    n_simp += 1
-                    break
+                    return True
+            return False
 
-    def get_classical_code(self, with_virtual_edges=False) -> npt.NDArray:
-        """
-            Return the parity check matrix associated with the underlying
-            classical codes
-        """
-        def to_check_idx(id: int): return id - self.n_bits
-
-        if with_virtual_edges:
-            raise "No support for virtual edges yet"
-
-        mb = np.zeros((self.n_bits, self.n_checks), dtype=np.int16)
-        mp = np.zeros((self.n_bits, self.n_checks), dtype=np.int16)
-        mc = np.zeros((self.n_checks, self.n_checks), dtype=np.int16)
-
-        for edge in self.edges:
-            if (edge.v1.data_qubit and edge.v2.check_qubit) or (edge.v2.data_qubit and edge.v1.check_qubit):
-                check = edge.v2 if edge.v1.data_qubit else edge.v1
-                bit = edge.v1 if edge.v1.data_qubit else edge.v2
-
-				# TODO: document how we expect bit ids to go from 0 to n_bits - 1 and check ids to go from n_bits to n_bits + n_checks - 1
-                # See https://github.com/Lev-Stambler/AI_QEC/issues/1
-                if edge.bit_check:
-                    mb[bit.id, to_check_idx(check.id)]
-                elif not edge.bit_check:
-                    mp[bit.id, to_check_idx(check.id)]
-            elif edge.v1.check_qubit and edge.v2.check_qubit:
-                if edge.virtual_edge:
-                    raise "Virtual edges not yet supported"
-                else:
-                    mc[to_check_idx(edge.v1.id), to_check_idx(edge.v2.id)] = 1
-                    mc[to_check_idx(edge.v2.id), to_check_idx(edge.v1.id)] = 1
-        
-
-        # The yellow nodes in the paper
-        pc = np.concatenate([mp.transpose(), ((mb.transpose() @ mp) % 2) ^ mc, mb.transpose(), np.eye(self.n_checks)], axis=-1)
-
-        return pc
+        n_simp = 0
+        while simp_round():
+            n_simp += 1
 
     def remove_edge(self, edge):
         # TODO: this whole class can be wayyyy more efficient w/ maps instead of lists
@@ -147,9 +119,68 @@ class CPCCode:
         if edge.v2.id != edge.v1.id:
             self.vertex_edge_adj[edge.v2.id].append(edge)
         self.edges.append(edge)
-    
+
     def has_edge(self, edge):
         return edge in self.edges
+
+    def get_tanner_graph(self) -> tuple[np.ndarray, np.ndarray]:
+        # TODO: somehow enforce PC "types"
+        """
+
+        """
+        checks: list[CPCVertex] = []
+        databits: list[CPCVertex] = []
+
+        for i, v in enumerate(self.vertices):
+            if not v.check_qubit and v.data_qubit:
+                databits.append(v)
+            elif v.check_qubit:
+                checks.append(v)
+
+        # As per the paper. https://arxiv.org/pdf/1804.07653.pdf,
+        # we have an extra bit for every check qubit
+        pc_mat = np.zeros(
+            (len(checks), len(checks) + 2 * len(databits)), dtype=np.uint8)
+
+        bit_types = np.zeros(
+            len(checks) + 2 * len(databits), dtype=np.uint8)
+
+        checks_to_idx = {}
+        for i, check in enumerate(checks):
+            checks_to_idx[check.id] = i
+
+        for i, bit in enumerate(databits):
+            bit_types[2 * i]= BitType.BIT_FLIP_DATA
+            bit_types[2 * i + 1]= BitType.PHASE_FLIP_DATA
+            for edge in self.vertex_edge_adj[bit.id]:
+                edge: CPCEdge = edge
+                if edge.virtual_edge:
+                    raise "Virtual edge on databit should be impossible"
+                opp_check: CPCVertex = edge.get_opposing_vertex(bit.id)
+                if edge.bit_check:
+                    assert(opp_check.check_qubit, "Expected check qubit")
+                    check_idx = checks_to_idx[opp_check.id]
+                    pc_mat[check_idx, 2 * i] = 1
+                elif not edge.bit_check:
+                    check_idx = checks_to_idx[opp_check.id]
+                    pc_mat[check_idx, 2 * i + 1] = 1
+
+        for i, check in enumerate(checks):
+            check_bit_idx = 2 * len(databits) + i
+            bit_types[check_bit_idx] = BitType.PHASE_FLIP_PC
+            for edge in self.vertex_edge_adj[check.id]:
+                edge: CPCEdge = edge
+                # A virtual edge originating from the check
+                if edge.virtual_edge and edge.v1.id == check.id:
+                    pc_check_idx = checks_to_idx[edge.v2.id]
+                    pc_mat[pc_check_idx, check_bit_idx] = 1
+                else:
+                    opp_vert = edge.get_opposing_vertex(check.id)
+                    if opp_vert.check_qubit:
+                        pc_check_idx = checks_to_idx[opp_vert.id]
+                        pc_mat[pc_check_idx, check_bit_idx] = 1
+
+        return pc_mat, bit_types
 
     def apply_simplify_rule(self, vertex: CPCVertex):
         """
@@ -175,7 +206,7 @@ class CPCCode:
                             self.remove_edge(e2)
                             return True
                         # Rule 2
-                        elif v.data_qubit:
+                        elif v.data_qubit and not e1.virtual_edge and not e2.virtual_edge:
                             virtual_edge = None
                             if e1.bit_check and not e2.bit_check:
                                 virtual_edge = CPCEdge(
@@ -193,7 +224,8 @@ class CPCCode:
                             return True
                         # Rule 5 part 1
                         elif e1.v2.id == vertex.id and e1.virtual_edge and e2.bit_check and not e2.virtual_edge:
-                            virtual_edge = CPCEdge(vertex, v, virtual_edge=True)
+                            virtual_edge = CPCEdge(
+                                vertex, v, virtual_edge=True)
                             # TODO: do we need to check whether things work out here as expected?
                             # I.e. use has_equals
                             # See https://github.com/Lev-Stambler/AI_QEC/issues/1
@@ -205,11 +237,16 @@ class CPCCode:
                         elif e2.v2.id == vertex.id and e2.virtual_edge and e1.bit_check and not e1.virtual_edge:
                             self.remove_edge(e1)
                             self.remove_edge(e2)
-                            virtual_edge = CPCEdge(vertex, v, virtual_edge=True)
+                            virtual_edge = CPCEdge(
+                                vertex, v, virtual_edge=True)
                             self.add_edge(virtual_edge)
                             return True
                         # Rule 6
-                        elif (e1.virtual_edge and e2.virtual_edge) and ((e1.v1.id == vertex.id and e2.v2.id == vertex.id) or (e1.v2.id == vertex.id and e2.v1.id == vertex.id)):
+                        elif (e1.virtual_edge and e2.virtual_edge) and \
+                                (
+                                    (e1.v1.id == vertex.id and e2.v2.id == vertex.id)
+                                    or (e1.v2.id == vertex.id and e2.v1.id == vertex.id)
+                        ):
                             self.remove_edge(e1)
                             self.remove_edge(e2)
                             self.add_edge(CPCEdge(vertex, v, bit_check=True))
@@ -238,11 +275,35 @@ class CPCCode:
 
         return False
 
-def get_classical_code_cpc(bit_adj, phase_adj, check_adj) -> npt.NDArray:
+
+def gen_cpc_from_classical_codes(H_x: npt.NDArray, H_z: npt.NDArray) -> CPCCode:
     """
-        Return the parity check matrix associated with the underlying
-        classical codes
+    Generate a CPC code from two NP Array Parity Checks. One for H_x (bit flip errors).
+    One for H_z (phase flip errors)
     """
-            # The yellow nodes in the paper
-    pc = np.concatenate([phase_adj.transpose(), ((bit_adj.transpose() @ phase_adj) % 2) ^ check_adj, bit_adj.transpose(), np.eye(check_adj.shape[-1])], axis=-1)
-    return pc
+    assert (H_x.shape[1] == H_z.shape[1],
+            "Expected Hx and Hz to havee the same number of qubits")
+    checks_x = [CPCVertex(i, check_qubit=True) for i in range(H_x.shape[0])]
+    checks_z = [CPCVertex(i + H_x.shape[0], check_qubit=True)
+                for i in range(H_z.shape[0])]
+    data_qubits = [CPCVertex(
+        i + H_x.shape[0] + H_z.shape[0], data_qubit=True) for i in range(H_x.shape[1])]
+    edges = []
+    for check_x in range(H_x.shape[0]):
+        for qubit in range(H_x.shape[1]):
+            if H_x[check_x, qubit]:
+                edges.append(CPCEdge(checks_x[check_x], data_qubits[qubit]))
+
+    for check_z in range(H_z.shape[0]):
+        for qubit in range(H_z.shape[1]):
+            if H_z[check_z, qubit]:
+                edges.append(
+                    CPCEdge(checks_z[check_z], data_qubits[qubit], bit_check=False))
+
+    return CPCCode(edges, auto_virtual_edges=True)
+
+
+if __name__ == '__main__':
+    code = gen_cpc_from_classical_codes(
+        np.array([[1, 0, 1], [0, 1, 1]]), np.array([[1, 0, 1], [0, 1, 1]]))
+    print(code.edges)

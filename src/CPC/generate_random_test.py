@@ -1,5 +1,5 @@
-from CPC.cpc_code import *
-from CPC import generate_random
+from cpc_code import *
+import generate_random
 import unittest
 from bposd import bposd_decoder
 
