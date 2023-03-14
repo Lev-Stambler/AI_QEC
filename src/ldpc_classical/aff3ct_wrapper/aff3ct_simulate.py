@@ -4,7 +4,6 @@ import os
 import numpy as np
 import math
 import numpy.typing as npt
-from CPC import generate_random
 
 _TMP_ALIST_PATH = "/tmp/aff3ct_sim_tmp_code.alist"
 _TMP_OUT_PATH = "/tmp/aff3ct_sim_tmp_out.txt"

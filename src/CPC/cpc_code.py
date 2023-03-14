@@ -119,6 +119,11 @@ class CPCCode:
             self.vertex_edge_adj[edge.v2.id].remove(edge)
         self.edges.remove(edge)
 
+    def get_all_check_vertices(self):
+        check_verts = []
+        [check_verts.append(v) for v in self.vertices if v.check_qubit]
+        return check_verts
+
     def add_edge(self, edge):
         self.vertex_edge_adj[edge.v1.id].append(edge)
         if edge.v2.id != edge.v1.id:

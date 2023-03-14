@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import math
 import copy
 import logging
-import utils
+import common
 
 def clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])

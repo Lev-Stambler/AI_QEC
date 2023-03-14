@@ -1,14 +1,14 @@
 import torch
 import json
 import copy
-from scoring.score_dataset import run_decoder
-import utils
+from scoring.score_dataset import run_decoder_wsr
+import common
 import os
 import numpy as np
 from scoring import score_model
 from generating import generating_model as gen_model
 import scoring
-from global_params import params
+from __old__.global_params import params
 
 
 def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initialize_epoch_start=1):
@@ -16,14 +16,14 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
     sample_code, _, _, _ = gc()
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
-    def ge(): return utils.sample_iid_error(n)
+    def ge(): return common.sample_iid_error(n)
     N_dec = 6  # CHanged from 6
     h = 8  # changed from 8
     d_model = 32
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device) if scoring_model is None else scoring_model
     scoring.score_training.main_training_loop(
-        "initialization", model, ge, gc, utils.get_best_scoring_model_path(
+        "initialization", model, ge, gc, common.get_best_scoring_model_path(
         ), params['n_score_training_per_epoch_initial'],
         epochs=params['n_score_epochs_initial'],
         plot_loss=plot_loss,
@@ -34,7 +34,7 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
 
 def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, low_p: list[int], epoch, is_init_epoch, n_tests=100_000, averaging_samples=100, eval_file=None):
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
-    eval_file = eval_file if eval_file is not None else utils.get_eval_path()
+    eval_file = eval_file if eval_file is not None else common.get_eval_path()
 
     json_object = None
     print(
@@ -57,7 +57,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
             err = np.ones(n) * p
             pc, _, _, _ = gen_model.generate_sample(
                 scoring_model, err, mutate=False)
-            r = run_decoder(pc, err, multiproc=False)
+            r = run_decoder_wsr(pc, err, multiproc=False)
             if r > best_low_p_succ_rate[i]:
                 best_low_p_succ_rate[i] = r
                 best_low_p_pcs = pc
@@ -71,7 +71,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
 
     with open(eval_file, "w") as outfile:
         print("WRITING", json_object)
-        json.dump(json_object, outfile, cls=utils.NpEncoder)
+        json.dump(json_object, outfile, cls=common.NpEncoder)
     print(f"Done evaluating performance for epoch {epoch}")
 
 
@@ -79,12 +79,12 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
                                      generating_model: gen_model.GeneratingModel, plot_loss=None):
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
 
-    def ge(): return utils.sample_iid_error(n)
+    def ge(): return common.sample_iid_error(n)
     err = ge()
     def gc(): return generating_model.generate_sample(scoring_model_copy, err)
 
     scoring.score_training.main_training_loop(f"gen_epoch_{genetic_epoch}",
-                                              scoring_model, ge, gc, utils.get_best_scoring_model_path(
+                                              scoring_model, ge, gc, common.get_best_scoring_model_path(
                                               ), params['n_score_training_per_epoch_genetic'],
                                               epochs=params['n_score_epochs_genetic'], plot_loss=plot_loss
                                               )
@@ -92,11 +92,11 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
 
 def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1, genetic_epoch_start=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.set_default_dtype(utils.get_numb_type())
+    torch.set_default_dtype(common.get_numb_type())
     scoring_model = None
     if load_saved_scoring_model:
         scoring_model = torch.load(os.path.join(
-            utils.get_best_scoring_model_path()))
+            common.get_best_scoring_model_path()))
 
     generating_model = None
     if not load_saved_generating_model:

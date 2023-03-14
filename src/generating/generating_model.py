@@ -6,10 +6,10 @@
 # Profit!
 import random
 import torch
-import utils
+import common
 from CPC.generate_random import random_cpc
 from CPC.cpc_code import get_classical_code_cpc
-from global_params import params
+from __old__.global_params import params
 import numpy as np
 
 
@@ -26,10 +26,10 @@ class GeneratingModel():
             phase_adj = starting_code[1]
             check_adj = starting_code[2]
 
-        bit_adj = utils.numpy_to_parameter(bit_adj, self.device)
-        phase_adj = utils.numpy_to_parameter(phase_adj, self.device)
-        check_adj = utils.numpy_to_parameter(check_adj, self.device)
-        physical_error_rates = utils.numpy_to_parameter(
+        bit_adj = common.numpy_to_parameter(bit_adj, self.device)
+        phase_adj = common.numpy_to_parameter(phase_adj, self.device)
+        check_adj = common.numpy_to_parameter(check_adj, self.device)
+        physical_error_rates = common.numpy_to_parameter(
             physical_error_rates, self.device)
 
         scoring_model.requires_grad_(False)
@@ -39,7 +39,7 @@ class GeneratingModel():
         optim = torch.optim.SGD([bit_adj, phase_adj, check_adj], lr=1e-1)
         # physical_error_rates.requires_grad_(False)
         goal_tensor = torch.tensor([[1.0]]).to(
-            self.device).type(utils.get_numb_type())
+            self.device).type(common.get_numb_type())
 
         for _ in range(num_steps):
             # Optimize towards a 0 error rate

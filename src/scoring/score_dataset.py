@@ -9,8 +9,8 @@ import torch
 import numpy.typing as npt
 from bposd import bposd_decoder
 import numpy as np
-import utils
-from global_params import params
+import common
+# from __old__.global_params import params
 
 
 def gen_random_ldpc(n, k, deg_row):
@@ -20,7 +20,7 @@ def gen_random_ldpc(n, k, deg_row):
     perm = np.stack([np.random.permutation(k) for _ in range((n - k))])
     x = np.take(x, perm)
     rand_ldpc_H = np.concatenate((iden_left, x), axis=1)
-    G = utils.HtoG(rand_ldpc_H)
+    G = common.HtoG(rand_ldpc_H)
     return rand_ldpc_H.astype(np.int16), G.astype(np.int16)
 
 
@@ -64,7 +64,7 @@ def run_decoder_bp_osd(pc, p_fails, n_runs):
     # TODO: use the built in test runner for faster
     return 1 - decode_random((n, rho, pc, n_runs))
 
-def run_decoder(pc, p_fails, multiproc=False):
+def run_decoder_wsr(pc, p_fails, multiproc=False):
     return aff3ct_simulate.get_wsr(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
@@ -133,7 +133,7 @@ class ScoringDataset(torch.utils.data.Dataset):
                 d['err_rate'])
 
     def calculate_error_rate(self, code, error_prob):
-        return run_decoder(code, error_prob)
+        return run_decoder_wsr(code, error_prob)
 
     def generate_error_file(self, file_name):
         e = self.error_prob()
@@ -146,7 +146,7 @@ class ScoringDataset(torch.utils.data.Dataset):
         dictionary['err_rate'] = err_rate
         dictionary['err_distr'] = e
 
-        json_object = json.dumps(dictionary, cls=utils.NumpyArrayEncoder)
+        json_object = json.dumps(dictionary, cls=common.NumpyArrayEncoder)
 
         # Writing to sample.json
         with open(file_name, "w") as outfile:

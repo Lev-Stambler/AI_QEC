@@ -1,5 +1,5 @@
 import math
-from global_params import params
+from __old__.global_params import params
 from torch.utils.data import DataLoader
 import numpy as np
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -8,7 +8,7 @@ import logging
 import torch
 import time
 from scoring.score_dataset import ScoringDataset
-import utils
+import common
 import scoring.score_model as scoring_model
 ##################################################################
 ##################################################################
@@ -40,7 +40,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
         past_preds.append(error_rate_pred.mean().item())
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(
-            0).to(device).type(utils.get_numb_type()))
+            0).to(device).type(common.get_numb_type()))
         if plot_loss is not None:
             plot_loss.update({'Train Delta Err': abs(error_rate_pred.mean().item() - error_rate.mean().item()), 'Train Loss': loss.item(),
                               'Train std dev': train_std_dev, 'Real Success Rate': error_rate.mean().item(), 'Predicated': error_rate_pred.mean().item()})
