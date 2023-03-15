@@ -1,4 +1,5 @@
 import copy
+import math
 import os
 from stable_baselines3.common.env_checker import check_env
 import gym
@@ -18,14 +19,16 @@ def flatten(l):
 class CPCAddCrossEnv(gym.Env):
     """Custom Environment that follows gym interface"""
 
-    def __init__(self, params: common.CPCTrialParams, max_cross_edges=170, target_succ_rate=0.99):
+    def __init__(self, params: common.CPCTrialParams, max_cross_edges=170, target_succ_rate=0.99, starting_cpc=None):
         super(CPCAddCrossEnv, self).__init__()
         self.max_cross_edges = max_cross_edges
         self.target_succ_rate = target_succ_rate
         self.params = params
 
-        self.cpc = generate_random.random_cpc(params.n, params.m_x, params.dv_x, params.m_z,
-                                              params.dv_z, params.seeds[0], params.seeds[1])
+        self.cpc: cpc_code.CPCCode = generate_random.random_cpc(params.n, params.m_x, params.dv_x, params.m_z,
+                                                                params.dv_z, params.seeds[0], params.seeds[1]) \
+            if starting_cpc is None else starting_cpc
+
         self.orig_cpc = copy.deepcopy(self.cpc)
         self.check_verts = self.cpc.get_all_check_vertices()
 
@@ -41,7 +44,7 @@ class CPCAddCrossEnv(gym.Env):
         self.added_edges = []
 
         self.observation_space = spaces.Box(low=0, high=1,
-                                                 shape=(H.shape[0], H.shape[1]), dtype=np.uint8)
+                                            shape=(H.shape[0], H.shape[1]), dtype=np.uint8)
 
     def step(self, action):
         if len(self.added_edges) > self.max_cross_edges:
@@ -79,7 +82,7 @@ class CPCAddCrossEnv(gym.Env):
         self.last_wer = 1 - wsr
 
         # TODO: SCALED?
-        reward = wsr
+        reward = math.e ** (2 * wsr) - 1
         self.n_steps += 1
         obs = H
 
