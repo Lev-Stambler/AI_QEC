@@ -86,7 +86,7 @@ class CPCAddCrossEnv(gym.Env):
         self.n_steps += 1
         obs = H
 
-        return obs, reward, wsr >= self.target_succ_rate, {}
+        return obs, wsr >= self.target_succ_rate, wsr >= self.target_succ_rate, {}
 
     def reset(self):
         # TODO: THIS DOES NOT REMOVE VIRTUAL EDGES... need to store copy of og
