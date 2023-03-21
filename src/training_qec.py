@@ -19,7 +19,7 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
     def ge(): return utils.sample_iid_error(n)
     N_dec = 8  # Changed from 6
     h = 12  # changed from 8
-    d_model = 64
+    d_model = 60
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device) if scoring_model is None else scoring_model
     scoring.score_training.main_training_loop(
