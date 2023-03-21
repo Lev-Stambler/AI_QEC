@@ -92,6 +92,7 @@ def train_score_model_with_generator(genetic_epoch, scoring_model: score_model.S
 
 def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_model=False, skip_initialization_training=False, skip_eval=False, initialize_epoch_start=1, genetic_epoch_start=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Found device", device)
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
     if load_saved_scoring_model:
