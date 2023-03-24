@@ -33,12 +33,15 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             if cum_samples != 0:
                 train_std_dev = calc_std_dev(past_preds)
             past_preds = []
+
+        error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(device).type(
+            torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
+
+        if cum_samples % plotting_period == 0:
             if plot_loss is None:
                 print(
                     f"Training and on round {cum_samples}. Train delta err: {error_rate_pred.mean().item()  - error_rate.mean().item()}. Real success rate: {error_rate.mean().item()}")
 
-        error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(device).type(
-            torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
         past_preds.append(error_rate_pred.mean().item())
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(
             0).to(device).type(utils.get_numb_type()))
