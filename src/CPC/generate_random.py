@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from CPC.cpc_code import get_classical_code_cpc
 from global_params import params
 
 
@@ -37,8 +38,5 @@ def random_cpc(n_bits=params['n_data_qubits'], n_checks=params['n_check_qubits']
             check_check_adj[c1, c2] = 1
             check_check_adj[c2, c1] = 1
 
-    phase_check = bit_adj.T.dot(phase_adj) ^ check_check_adj
-    pc = np.concatenate([phase_adj.T, phase_check,
-                         bit_adj.T, np.eye(n_checks)], axis=-1)
-
+    pc = get_classical_code_cpc(bit_adj, phase_adj, check_check_adj)
     return pc, bit_adj, phase_adj, check_check_adj
