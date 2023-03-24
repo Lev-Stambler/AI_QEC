@@ -32,7 +32,7 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
     # model = torch.load(os.path.join(save_path, 'best_model'))
 
 
-def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, low_p: list[int], epoch, is_init_epoch, n_tests=100_000, averaging_samples=100, eval_file=None):
+def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_model: gen_model.GeneratingModel, low_p: list, epoch, is_init_epoch, n_tests=100_000, averaging_samples=100, eval_file=None):
     n = (params['n_data_qubits'] + params['n_check_qubits']) * 2
     eval_file = eval_file if eval_file is not None else utils.get_eval_path()
 
