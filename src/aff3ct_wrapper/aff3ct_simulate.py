@@ -15,8 +15,8 @@ def _np_to_alist(H: npt.NDArray, alist_path=_TMP_ALIST_PATH):
     n_pc = H.shape[0]
     n_bits = H.shape[1]
 
-    pc_degs = [np.sum(H[i]) for i in range(n_pc)]
-    bit_degs = [np.sum(H[:, i]) for i in range(n_bits)]
+    pc_degs = np.sum(H, axis=1)
+    bit_degs = np.sum(H, axis=0)
     max_pc_deg = int(max(pc_degs))
     max_bit_deg = int(max(bit_degs))
     print("MAX DEG", pc_degs, bit_degs, max_pc_deg, max_bit_deg, H)
