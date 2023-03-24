@@ -11,6 +11,7 @@ _TMP_OUT_PATH = "build/tmp_out.txt"
 
 
 def _np_to_alist(H: npt.NDArray, alist_path=_TMP_ALIST_PATH):
+    H = H.astype(np.uin16)
     n_pc = H.shape[0]
     n_bits = H.shape[1]
 
