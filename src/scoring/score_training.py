@@ -21,7 +21,7 @@ def calc_std_dev(items: list):
     return math.sqrt(sum([(avg - i) ** 2 for i in items]) / (len(items) - 1))
 
 
-def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, plotting_period=10):
+def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, plotting_period=500):
     model.train()
     cum_loss = cum_samples = 0
     t = time.time()
@@ -34,7 +34,8 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
                 train_std_dev = calc_std_dev(past_preds)
             past_preds = []
             if plot_loss is None:
-                print("Training and on round:", cum_samples)
+                print(
+                    f"Training and on round {cum_samples}. Train delta err: {error_rate_pred.mean().item()  - error_rate.mean().item()}. Real success rate: {error_rate.mean().item()}")
 
         error_rate_pred = model(bit_adj.to(device).type(torch.float32), phase_adj.to(device).type(
             torch.float32), check_adj.to(device).type(torch.float32), error_distr.to(device).type(torch.float32))
