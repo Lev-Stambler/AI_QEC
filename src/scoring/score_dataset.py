@@ -28,7 +28,7 @@ def sample_noisy_codespace(n, p_failures):
     return (np.random.rand(n) <= p_failures).astype(np.uint16)
 
 
-def decode_random(params, err_bar_cutoff=0.01):
+def bpods_get_wsr(params, err_bar_cutoff=0.01):
     n, rho, pc, block_size = params
     s = 0
 
@@ -61,9 +61,10 @@ def decode_random(params, err_bar_cutoff=0.01):
 def run_decoder_bp_osd(pc, p_fails, n_runs):
     n = pc.shape[1]
     rho = p_fails
-    return decode_random((n, rho, pc, n_runs))
+    return bpods_get_wsr((n, rho, pc, n_runs))
 
 def run_decoder(pc, p_fails, multiproc=False):
+    return run_decoder_bp_osd(pc, p_fails, n_runs=10_000)
     return aff3ct_simulate.get_wsr(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
@@ -80,7 +81,7 @@ def run_decoder(pc, p_fails, multiproc=False):
     #             n_succ += s
     #     return n_succ
     # else:
-    return decode_random((n, rho, pc, n_runs))
+    return bpods_get_wsr((n, rho, pc, n_runs))
 
 
 def get_data_sample_file(dir, numb):
