@@ -10,6 +10,9 @@ from generating import generating_model as gen_model
 import scoring
 from global_params import params
 
+N_dec = 8  # Changed from 6
+h = 12  # changed from 8
+d_model = 60
 
 def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initialize_epoch_start=1):
     def gc(): return scoring.initial_code_sampling.generate_code()
@@ -17,9 +20,6 @@ def initialize_scoring_model(device, plot_loss=None, scoring_model=None, initial
     n = sample_code.shape[-1]
     k = n - sample_code.shape[-2]
     def ge(): return utils.sample_iid_error(n)
-    N_dec = 8  # Changed from 6
-    h = 12  # changed from 8
-    d_model = 60
     model = score_model.ScoringTransformer(
         params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device) if scoring_model is None else scoring_model
     scoring.score_training.main_training_loop(
@@ -96,8 +96,11 @@ def main(plot_loss=None, load_saved_scoring_model=False, load_saved_generating_m
     torch.set_default_dtype(utils.get_numb_type())
     scoring_model = None
     if load_saved_scoring_model:
-        scoring_model = torch.load(os.path.join(
-            utils.get_best_scoring_model_path()))
+        scoring_model = score_model.ScoringTransformer(
+            params['n_data_qubits'], params['n_check_qubits'], h, d_model, N_dec, device, dropout=0).to(device)
+        p = os.path.join(
+            utils.get_best_scoring_model_path())
+        scoring_model.load_state_dict(torch.load(p, map_location=device))
 
     generating_model = None
     if not load_saved_generating_model:

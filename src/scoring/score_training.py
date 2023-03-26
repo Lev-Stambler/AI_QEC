@@ -106,6 +106,6 @@ def main_training_loop(data_dir_prefix,
         print("Done stepping")
         if loss < best_loss:
             best_loss = loss
-            torch.save(model, save_path)
+            torch.save(model.state_dict(), save_path)
             print("Saving Model at Epoch", epoch)
         print(f"Epoch {epoch} finished, loss: {loss}")

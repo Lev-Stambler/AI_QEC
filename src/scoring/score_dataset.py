@@ -1,4 +1,5 @@
 from typing import Callable
+import time
 # from ldpc.bp_decode_sim import classical_decode_sim
 from aff3ct_wrapper import aff3ct_simulate
 import math
@@ -30,6 +31,7 @@ def sample_noisy_codespace(n, p_failures):
 
 
 def bpods_get_wsr(params, err_bar_cutoff=0.01):
+    start_time = time.time()
     n, rho, pc, block_size = params
     s = 0
 
@@ -54,6 +56,7 @@ def bpods_get_wsr(params, err_bar_cutoff=0.01):
             # print(bp_frame_error_rate_eb, p, err_bar_cutoff)
             if 1 - p != 0 and bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
                 return p
+    print("bp osd time", time.time() - start_time)
     return s / block_size
 
 # TODO: can we parallelize this dramatically? I think yes
