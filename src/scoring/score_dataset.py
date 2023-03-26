@@ -52,7 +52,7 @@ def bpods_get_wsr(params, err_bar_cutoff=0.01):
             bp_frame_error_rate_eb = np.sqrt(q*p/n_runs).item()
             # print(bp_frame_error_rate_eb, p,err_bar_cutoff)
             # print(bp_frame_error_rate_eb, p, err_bar_cutoff)
-            if 1 - p is not 0 and bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
+            if 1 - p != 0 and bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
                 return p
     return s / block_size
 
