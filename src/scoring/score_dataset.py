@@ -2,6 +2,7 @@ from typing import Callable
 # from ldpc.bp_decode_sim import classical_decode_sim
 from aff3ct_wrapper import aff3ct_simulate
 import math
+from bposd import bposd_decoder
 import json
 import os
 from multiprocessing import Pool, Process
