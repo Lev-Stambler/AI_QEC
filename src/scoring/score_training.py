@@ -58,7 +58,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
         cum_loss += loss.item() * bit_adj.shape[0]
 
         cum_samples += bit_adj.shape[0]
-        if (batch_idx+1) % 500 == 0 or batch_idx == len(train_loader) - 1:
+        if (batch_idx+1) % 1_000 == 0 or batch_idx == len(train_loader) - 1:
             logging.info(
                 f'Training epoch {epoch}, Batch {batch_idx + 1}/{len(train_loader)}: LR={LR:.2e}, Loss={cum_loss / cum_samples:.2e}')
     logging.info(f'Epoch {epoch} Train Time {time.time() - t}s\n')
