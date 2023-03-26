@@ -49,7 +49,7 @@ def bpods_get_wsr(params, err_bar_cutoff=0.01):
         if n_runs > 100:
             p = s / n_runs
             q = 1 - p
-            bp_frame_error_rate_eb = np.sqrt(q*p/n_runs)
+            bp_frame_error_rate_eb = np.sqrt(q*p/n_runs).item()
             # print(bp_frame_error_rate_eb, p,err_bar_cutoff)
             # print(bp_frame_error_rate_eb, p, err_bar_cutoff)
             if bp_frame_error_rate_eb / (1-p) < err_bar_cutoff:
