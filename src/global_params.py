@@ -11,7 +11,7 @@ params = {
     # TODO: turn into a range instead of 2 variables
     'constant_error_rate_lower': 0.002,
     'constant_error_rate_upper': 0.002,
-    'n_genetic_epochs': 20,
+    'n_genetic_epochs': 40,
     'n_score_testing_samples': 50,
     'n_score_training_per_epoch_initial': 10_000,  # 10_000,
     'n_score_training_per_epoch_genetic': 2_000,

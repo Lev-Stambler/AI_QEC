@@ -68,7 +68,7 @@ def run_decoder_bp_osd(pc, p_fails, n_runs):
     return bpods_get_wsr((n, rho, pc, n_runs))
 
 def run_decoder(pc, p_fails, multiproc=False):
-    return run_decoder_bp_osd(pc, p_fails, n_runs=10_000)
+    return run_decoder_bp_osd(pc, p_fails, n_runs=50_000)
     return aff3ct_simulate.get_wsr(pc, p_fails)
     n = pc.shape[1]
     rho = p_fails
