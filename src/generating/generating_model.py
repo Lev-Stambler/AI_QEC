@@ -41,10 +41,14 @@ class GeneratingModel():
         goal_tensor = torch.tensor([[1.0]]).to(
             self.device).type(utils.get_numb_type())
 
+        scoring_model.to(torch.double)
         for _ in range(num_steps):
             # Optimize towards a 0 error rate
-            loss = mse(scoring_model(bit_adj,
-                                     phase_adj, check_adj, physical_error_rates), goal_tensor)
+            score = scoring_model(bit_adj,
+                                  phase_adj, check_adj, physical_error_rates.type(
+                                      utils.get_numb_type()
+                                  ))
+            loss = mse(score, goal_tensor)
             loss.backward()
             # hmmm... we are doing some stepping here, but we have to make hard decisions eventually
             # Maybe this is where RL would be better...
