@@ -19,7 +19,7 @@ params = {
     'n_score_epochs_genetic': 6,
     # The number of times to run a decoder to generate the error rate
     'n_decoder_rounds': 100_000,
-    'p_skip_mutation': 0.35,
+    'p_skip_mutation': 0.8,
     'p_random_mutation_range': [0.005, 0.015],
     'eval_p_range': [0.001, 0.005],
     'params_prefix': 'bsc_iid_noise',
