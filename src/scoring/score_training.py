@@ -24,6 +24,7 @@ def calc_std_dev(items: list):
 def train(model: scoring_model.ScoringTransformer, device, train_loader, optimizer, epoch, LR, plot_loss=None, plotting_period=500):
     model.train()
     cum_loss = cum_samples = 0
+    best_p = 0
     t = time.time()
     train_std_dev = 0
     past_preds = []
@@ -41,6 +42,10 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             if plot_loss is None:
                 print(
                     f"Training and on round {cum_samples}. Train delta err: {error_rate_pred.mean().item()  - error_rate.mean().item()}. Real success rate: {error_rate.mean().item()}")
+
+        for p in error_rate.toList():
+            if p > best_p:
+                best_p = p
 
         past_preds.append(error_rate_pred.mean().item())
         loss = model.loss(error_rate_pred, error_rate.unsqueeze(
@@ -62,7 +67,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
             logging.info(
                 f'Training epoch {epoch}, Batch {batch_idx + 1}/{len(train_loader)}: LR={LR:.2e}, Loss={cum_loss / cum_samples:.2e}')
     logging.info(f'Epoch {epoch} Train Time {time.time() - t}s\n')
-    return cum_loss / cum_samples
+    return cum_loss / cum_samples, best_p
 
 
 ##################################################################
@@ -99,7 +104,7 @@ def main_training_loop(data_dir_prefix,
     for epoch in range(epoch_start, epochs + 1):
         train_dataloader = DataLoader(ScoringDataset(error_prob_sample, random_code_sample, load_save_dir=get_save_dir(data_dir_prefix, epoch), raw_dataset_size=train_size), batch_size=int(batch_size),
                                       shuffle=True, num_workers=workers)
-        loss = train(model, device, train_dataloader, optimizer,
+        loss, best_p = train(model, device, train_dataloader, optimizer,
                      epoch, LR=scheduler.get_last_lr()[0], plot_loss=plot_loss)
         print("Stepping with scheduler")
         scheduler.step()
@@ -108,4 +113,4 @@ def main_training_loop(data_dir_prefix,
             best_loss = loss
             torch.save(model.state_dict(), save_path)
             print("Saving Model at Epoch", epoch)
-        print(f"Epoch {epoch} finished, loss: {loss}")
+        print(f"Epoch {epoch} finished, loss: {loss}, best_p: {best_p}")
