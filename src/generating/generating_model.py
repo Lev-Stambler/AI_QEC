@@ -17,7 +17,7 @@ class GeneratingModel():
     def __init__(self, device) -> None:
         self.device = device
 
-    def generate_sample(self, scoring_model, physical_error_rates, num_steps=40, starting_code=None, mutate=True):
+    def generate_sample(self, scoring_model, physical_error_rates, num_steps=100, starting_code=None, mutate=True):
         bit_adj = phase_adj = check_adj = None
         if starting_code == None:
             _, bit_adj, phase_adj, check_adj = random_cpc()
