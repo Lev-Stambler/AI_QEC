@@ -41,7 +41,7 @@ class GeneratingModel():
         goal_tensor = torch.tensor([[1.0]]).to(
             self.device).type(utils.get_numb_type())
 
-        scoring_model.to(torch.double)
+        scoring_model.to(utils.get_numb_type())
         for _ in range(num_steps):
             # Optimize towards a 0 error rate
             score = scoring_model(bit_adj,
