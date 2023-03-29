@@ -4,4 +4,4 @@ print(os.getcwd())
 sys.path.append(os.getcwd() + "/src")
 from training_qec import main
 model = main(None, load_saved_scoring_model=True,
-             skip_initialization_training=True, skip_eval=True, initialize_epoch_start=1, genetic_epoch_start=20)
+             skip_initialization_training=True, skip_eval=True, initialize_epoch_start=1, genetic_epoch_start=1)
