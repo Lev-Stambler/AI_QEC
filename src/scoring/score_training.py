@@ -43,7 +43,7 @@ def train(model: scoring_model.ScoringTransformer, device, train_loader, optimiz
                 print(
                     f"Training and on round {cum_samples}. Train delta err: {error_rate_pred.mean().item()  - error_rate.mean().item()}. Real success rate: {error_rate.mean().item()}")
 
-        for p in error_rate.toList():
+        for p in error_rate.tolist():
             if p > best_p:
                 best_p = p
 
