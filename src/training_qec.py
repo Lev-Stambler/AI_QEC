@@ -66,6 +66,7 @@ def evaluate_performance(scoring_model: score_model.ScoringTransformer, gen_mode
             averaging_samples
 
         for p, best_wsr, best_pc in zip(low_p, best_low_p_succ_rate, best_low_p_pcs):
+            print(f"Best performance for p={p} is {best_wsr}")
             json_object[overall_name][f"low_p_best_{p}"] = best_wsr
             json_object[overall_name][f"low_p_best_{p}_pc"] = best_pc
 

@@ -11,3 +11,4 @@ __pycache__
 aff3ct
 build/*
 !build/.gitkeep
+data
